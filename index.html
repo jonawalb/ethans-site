@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Ethan Connell &mdash; Maritime Intelligence &amp; Indo-Pacific Security</title>
+<meta name="description" content="Ethan Connell — maritime security analyst, GEOINT/OSINT researcher, and Assistant Director at the Taiwan Security Monitor. Work on the PLA Navy, undersea infrastructure, and the Taiwan Strait." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" />
+<link rel="stylesheet" href="styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%230a1828' stroke='%23c8985f' stroke-width='2'/%3E%3Cpath d='M32 8 L36 32 L32 56 L28 32 Z' fill='%23c8985f'/%3E%3Cpath d='M8 32 L32 28 L56 32 L32 36 Z' fill='%23e0b87a'/%3E%3Ccircle cx='32' cy='32' r='3' fill='%230a1828'/%3E%3C/svg%3E" />
+</head>
+<body>
+
+<!-- ─── chart grain + sea overlay ─── -->
+<div class="grain" aria-hidden="true"></div>
+<div class="chart-grid" aria-hidden="true"></div>
+
+<!-- ─── top deck / nav ─── -->
+<header class="topdeck">
+  <div class="topdeck__inner">
+    <a class="ensign" href="#bridge" aria-label="Ethan Connell — home">
+      <span class="ensign__mark">EC</span>
+      <span class="ensign__rule"></span>
+      <span class="ensign__sub">Maritime Intel · Indo-Pacific</span>
+    </a>
+    <nav class="bearings" aria-label="Primary">
+      <a href="#about">About</a>
+      <a href="#stations">Stations</a>
+      <a href="#logbook">Logbook</a>
+      <a href="#honors">Honors</a>
+      <a href="#teaching">Teaching</a>
+      <a href="#hail">Hail</a>
+    </nav>
+    <div class="coords" aria-hidden="true">
+      <span data-coord="lat">25°02′N</span>
+      <span class="coords__div">·</span>
+      <span data-coord="lon">121°31′E</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ─── BRIDGE / HERO ─── -->
+<section id="bridge" class="bridge">
+  <div class="bridge__meta">
+    <span class="tag">Ethan Connell · Fairfax, VA</span>
+    <span class="tag">Updated Jun 8, 2026</span>
+  </div>
+
+  <div class="bridge__main">
+    <div class="bridge__text">
+      <p class="kicker">Maritime Intelligence &middot; Indo-Pacific Security</p>
+      <h1 class="display">Ethan Connell</h1>
+      <p class="lede">
+        Maritime security analyst working the open-source surface, sub-surface, and undersea-cable picture across the Indo-Pacific. Assistant Director and Head of Analysis &amp; Monitoring at the <strong>Taiwan Security Monitor</strong>; previously a maritime risk intern at the Department of the Navy's <strong>National Maritime Intelligence-Integration Office</strong>. Coursework concentrates in intelligence analysis at George Mason.
+      </p>
+      <div class="bridge__cta">
+        <a class="btn btn--brass" href="#stations">Open the logbook <span aria-hidden="true">→</span></a>
+        <a class="btn btn--ghost" href="#hail">Make contact</a>
+      </div>
+    </div>
+
+    <!-- plate: USS Zumwalt -->
+    <figure class="bridge__plate">
+      <div class="plate__frame">
+        <img
+          src="assets/zumwalt.jpg"
+          srcset="assets/zumwalt-900.jpg 900w, assets/zumwalt.jpg 1800w"
+          sizes="(max-width: 880px) 90vw, 40vw"
+          alt="USS Zumwalt (DDG-1000) underway, April 2016"
+          loading="eager"
+          decoding="async"
+        />
+        <span class="plate__corner plate__corner--tl" aria-hidden="true"></span>
+        <span class="plate__corner plate__corner--tr" aria-hidden="true"></span>
+        <span class="plate__corner plate__corner--bl" aria-hidden="true"></span>
+        <span class="plate__corner plate__corner--br" aria-hidden="true"></span>
+      </div>
+      <figcaption class="plate__cap">
+        <span class="plate__cap-num">PL. 01</span>
+        <span class="plate__cap-text">USS <em>Zumwalt</em> (DDG-1000), underway &middot; US Navy photo</span>
+      </figcaption>
+    </figure>
+  </div>
+
+  <!-- depth contours strip -->
+  <div class="depth" aria-hidden="true">
+    <svg viewBox="0 0 1200 60" preserveAspectRatio="none">
+      <path d="M0 30 Q 100 10 200 30 T 400 30 T 600 30 T 800 30 T 1000 30 T 1200 30" fill="none" stroke="#c8985f" stroke-width=".7" opacity=".55"/>
+      <path d="M0 40 Q 100 22 200 40 T 400 40 T 600 40 T 800 40 T 1000 40 T 1200 40" fill="none" stroke="#c8985f" stroke-width=".5" opacity=".4"/>
+      <path d="M0 50 Q 100 34 200 50 T 400 50 T 600 50 T 800 50 T 1000 50 T 1200 50" fill="none" stroke="#c8985f" stroke-width=".4" opacity=".3"/>
+    </svg>
+  </div>
+</section>
+
+
+<!-- ─── ABOUT ─── -->
+<section id="about" class="section">
+  <div class="section__head">
+    <span class="section__num">I.</span>
+    <h2 class="section__title">About</h2>
+    <span class="section__rule"></span>
+    <span class="section__note">Coordinates · Education · Beam</span>
+  </div>
+
+  <div class="about">
+    <div class="about__prose">
+      <p>
+        I'm a maritime security analyst focused on the People's Liberation Army's surface and sub-surface fleet, the undersea infrastructure that ties the Indo-Pacific together, and the narrative side of how Beijing talks about Taiwan. My work has been featured or quoted in the <em>Wall Street Journal</em>, the <em>Financial Times</em>, <em>The Diplomat</em>, RUSI, <em>Newsweek</em>, and TaiwanPlus News.
+      </p>
+      <p>
+        At the <strong>Taiwan Security Monitor</strong> I lead the Analysis &amp; Monitoring team, which runs the open-source surface/sub-surface fleet tracker, the Taiwan Strait Transit Tracker, and the Taiwan Affairs Office Statement Repository. Before that I directed TSM's Geospatial Intelligence and Visualization teams, where we built a detailed map of East Asian military and critical civilian infrastructure and correctly flagged predictive indicators ahead of the <em>Joint Sword 2024B</em> and <em>Strait Thunder 2025</em> exercises.
+      </p>
+      <p>
+        I previously interned at the Department of the Navy's <strong>National Maritime Intelligence-Integration Office</strong>, where I worked port-security and Belt and Road maritime risk assessments and built out a global map of undersea cable landing sites. I provide OSINT and GEOINT trainings to DIA's Joint Military Intelligence Training Center and the China Mission Group.
+      </p>
+    </div>
+
+    <aside class="education">
+      <h3 class="education__h">Education</h3>
+      <ol class="education__list">
+        <li>
+          <span class="education__deg">M.A., International Security</span>
+          <span class="education__inst">George Mason University &middot; Fairfax, VA</span>
+          <span class="education__date">Expected 2027</span>
+          <span class="education__note">Concentration in Intelligence Analysis. Maritime Security · Grand Strategy · Ethics in the Use of Force.</span>
+        </li>
+        <li>
+          <span class="education__deg">B.A., Government &amp; International Politics</span>
+          <span class="education__inst">George Mason University &middot; Fairfax, VA</span>
+          <span class="education__date">2025</span>
+          <span class="education__note">Concentration in International Relations; Minor in International Security. Taiwan and Security · Chinese Foreign Policy · Research Methods.</span>
+        </li>
+      </ol>
+      <h3 class="education__h education__h--small">Beam &amp; tools</h3>
+      <ul class="chips">
+        <li>OSINT</li><li>GEOINT</li><li>Satellite imagery</li>
+        <li>QGIS</li><li>ArcGIS</li><li>Mandarin sources</li>
+        <li>PLA Navy</li><li>Undersea cables</li><li>Port security</li>
+      </ul>
+    </aside>
+  </div>
+</section>
+
+
+<!-- ─── STATIONS / THINGS I DO ─── -->
+<section id="stations" class="section section--dark">
+  <div class="section__head">
+    <span class="section__num">II.</span>
+    <h2 class="section__title">Stations</h2>
+    <span class="section__rule"></span>
+    <span class="section__note">Where I keep the watch</span>
+  </div>
+
+  <ol class="stations">
+
+    <li class="station">
+      <div class="station__sigil" aria-hidden="true">
+        <svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="26" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M30 6 V54 M6 30 H54" stroke="currentColor" stroke-width=".6"/><circle cx="30" cy="30" r="14" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="30" cy="30" r="3" fill="currentColor"/></svg>
+      </div>
+      <div class="station__body">
+        <header class="station__head">
+          <h3>Assistant Director · Head of Analysis &amp; Monitoring</h3>
+          <p class="station__org">Taiwan Security Monitor &middot; George Mason University</p>
+          <p class="station__dates"><time>Jan 2026</time> &mdash; Present &middot; Fairfax, VA</p>
+        </header>
+        <ul class="station__list">
+          <li>Direct TSM's Analysis &amp; Monitoring team, operating the open-source surface/sub-surface fleet tracker, the Taiwan Strait Transit Tracker, and the Taiwan Affairs Office Statement Repository.</li>
+          <li>Lead research on maritime security and the PRC state-media organs that shape narratives around Taiwan.</li>
+          <li>Produced analysis featured in the <em>Wall Street Journal</em>, <em>The Diplomat</em>, the Center for Maritime Strategy, and the <em>Financial Times</em>.</li>
+        </ul>
+      </div>
+    </li>
+
+    <li class="station">
+      <div class="station__sigil" aria-hidden="true">
+        <svg viewBox="0 0 60 60"><rect x="8" y="8" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M8 30 H52 M30 8 V52 M8 8 L52 52 M52 8 L8 52" stroke="currentColor" stroke-width=".5" opacity=".7"/><circle cx="30" cy="30" r="6" fill="currentColor" opacity=".15"/><circle cx="30" cy="30" r="6" fill="none" stroke="currentColor" stroke-width="1"/></svg>
+      </div>
+      <div class="station__body">
+        <header class="station__head">
+          <h3>Research Lead · Geospatial Intelligence &amp; Data Visualization</h3>
+          <p class="station__org">Taiwan Security Monitor &middot; George Mason University</p>
+          <p class="station__dates"><time>Feb 2023</time> &mdash; <time>Jan 2026</time></p>
+        </header>
+        <ul class="station__list">
+          <li>Supervised a 20-person research team — delegated projects, managed schedules, and directed the GEOINT and Visualization/Imagery teams building a detailed map and database of East Asian military and critical civilian infrastructure.</li>
+          <li>Collected and analyzed daily satellite imagery of PLA naval and strategic-air facilities to assess risk and mobilization; correctly identified predictive indicators ahead of <em>Joint Sword 2024B</em> and <em>Strait Thunder 2025</em>.</li>
+          <li>Built data visualizations in QGIS and ArcGIS for public release — featured in the <em>Wall Street Journal</em>, RUSI, <em>Newsweek</em>, and TaiwanPlus News.</li>
+          <li>Translated and published the first English translation of Taiwan's <em>2025 Quadrennial Defense Review</em>, plus regular translations of PRC civilian and military statements.</li>
+          <li>Directed a real-time database of naval surface, sub-surface, and unmanned-platform readiness, published in <em>The Diplomat</em> and the Center for Maritime Strategy and quoted in the <em>Financial Times</em>.</li>
+          <li>Provided OSINT and GEOINT trainings to DIA's Joint Military Intelligence Training Center and China Mission Group.</li>
+        </ul>
+      </div>
+    </li>
+
+    <li class="station">
+      <div class="station__sigil" aria-hidden="true">
+        <svg viewBox="0 0 60 60"><path d="M30 6 L54 22 L46 52 L14 52 L6 22 Z" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M30 18 L42 26 L38 42 L22 42 L18 26 Z" fill="none" stroke="currentColor" stroke-width=".8"/><circle cx="30" cy="30" r="3" fill="currentColor"/></svg>
+      </div>
+      <div class="station__body">
+        <header class="station__head">
+          <h3>Maritime Risk Analysis &amp; Assessment Intern</h3>
+          <p class="station__org">National Maritime Intelligence-Integration Office &middot; Department of the Navy</p>
+          <p class="station__dates"><time>May 2024</time> &mdash; <time>May 2025</time> &middot; Suitland, MD</p>
+        </header>
+        <ul class="station__list">
+          <li>Assessed the maritime impact of China's Belt and Road Initiative through satellite imagery and OSINT, including port-security risk assessments for domestic and foreign ports.</li>
+          <li>Identified and catalogued a comprehensive map of global undersea/submarine cable landing sites and pathings through GEOINT and OSINT.</li>
+        </ul>
+      </div>
+    </li>
+
+  </ol>
+</section>
+
+
+<!-- ─── LOGBOOK / PUBLICATIONS ─── -->
+<section id="logbook" class="section">
+  <div class="section__head">
+    <span class="section__num">III.</span>
+    <h2 class="section__title">Logbook</h2>
+    <span class="section__rule"></span>
+    <span class="section__note">Commentary &amp; analysis · in date order</span>
+  </div>
+
+  <ol class="logbook">
+    <li class="entry">
+      <span class="entry__date"><span class="entry__y">2026</span><span class="entry__d">May 28</span></span>
+      <div class="entry__body">
+        <h3 class="entry__title">If the lights are off, Taiwan loses</h3>
+        <p class="entry__venue">Taipei Times</p>
+      </div>
+      <span class="entry__tag">Energy security</span>
+    </li>
+    <li class="entry">
+      <span class="entry__date"><span class="entry__y">2026</span><span class="entry__d">May 22</span></span>
+      <div class="entry__body">
+        <h3 class="entry__title">Japan's Frigate Diplomacy &mdash; and what it could mean for Taiwan</h3>
+        <p class="entry__venue">The Diplomat</p>
+      </div>
+      <span class="entry__tag">Alliances</span>
+    </li>
+    <li class="entry">
+      <span class="entry__date"><span class="entry__y">2026</span><span class="entry__d">Apr 24</span></span>
+      <div class="entry__body">
+        <h3 class="entry__title">Scrap the submarine daydream</h3>
+        <p class="entry__venue">Taipei Times</p>
+      </div>
+      <span class="entry__tag">Sub-surface</span>
+    </li>
+    <li class="entry">
+      <span class="entry__date"><span class="entry__y">2026</span><span class="entry__d">Apr 22</span></span>
+      <div class="entry__body">
+        <h3 class="entry__title">Taiwan's mine-warfare gap: the distance between concept and capability</h3>
+        <p class="entry__venue">The Monitor &middot; Taiwan Security Monitor</p>
+      </div>
+      <span class="entry__tag">Mine warfare</span>
+    </li>
+    <li class="entry">
+      <span class="entry__date"><span class="entry__y">2026</span><span class="entry__d">Mar 18</span></span>
+      <div class="entry__body">
+        <h3 class="entry__title">From 16 aircraft to surrounded: fear, virality, and the misinformation cascade in ADIZ discourse</h3>
+        <p class="entry__venue">The Monitor &middot; Taiwan Security Monitor</p>
+      </div>
+      <span class="entry__tag">Narrative warfare</span>
+    </li>
+    <li class="entry">
+      <span class="entry__date"><span class="entry__y">2026</span><span class="entry__d">Mar 7</span></span>
+      <div class="entry__body">
+        <h3 class="entry__title">All quiet in the Taiwan Strait? Explaining the recent drop in PLA aircraft activity</h3>
+        <p class="entry__venue">The Monitor &middot; Taiwan Security Monitor</p>
+      </div>
+      <span class="entry__tag">PLA activity</span>
+    </li>
+    <li class="entry">
+      <span class="entry__date"><span class="entry__y">2026</span><span class="entry__d">Jan 20</span></span>
+      <div class="entry__body">
+        <h3 class="entry__title">Failure to launch: how political backpedaling could hand China the carrier edge</h3>
+        <p class="entry__venue">Center for Maritime Strategy</p>
+      </div>
+      <span class="entry__tag">Carriers</span>
+    </li>
+    <li class="entry">
+      <span class="entry__date"><span class="entry__y">2026</span><span class="entry__d">Jan 5</span></span>
+      <div class="entry__body">
+        <h3 class="entry__title">Creeping closer: timeline and analysis of the Justice Mission-2025 joint exercise</h3>
+        <p class="entry__venue">The Monitor &middot; Taiwan Security Monitor</p>
+      </div>
+      <span class="entry__tag">Exercises</span>
+    </li>
+    <li class="entry">
+      <span class="entry__date"><span class="entry__y">2025</span><span class="entry__d">May 20</span></span>
+      <div class="entry__body">
+        <h3 class="entry__title">Don't sweep minesweepers under the rug: America's critical naval vulnerability</h3>
+        <p class="entry__venue">Center for Maritime Strategy</p>
+      </div>
+      <span class="entry__tag">USN posture</span>
+    </li>
+    <li class="entry">
+      <span class="entry__date"><span class="entry__y">2025</span><span class="entry__d">Apr 23</span></span>
+      <div class="entry__body">
+        <h3 class="entry__title">How the Philippines can counter China's South China Sea aggression</h3>
+        <p class="entry__venue">The Diplomat</p>
+      </div>
+      <span class="entry__tag">SCS</span>
+    </li>
+  </ol>
+</section>
+
+
+<!-- ─── HONORS ─── -->
+<section id="honors" class="section section--dark">
+  <div class="section__head">
+    <span class="section__num">IV.</span>
+    <h2 class="section__title">Honors</h2>
+    <span class="section__rule"></span>
+    <span class="section__note">Fellowships &amp; awards</span>
+  </div>
+
+  <div class="honors">
+    <article class="honor">
+      <p class="honor__year">2026</p>
+      <h3 class="honor__name">DACOR Bacon House Foundation Fellow</h3>
+      <p class="honor__sub">For the Advanced Study of Foreign Affairs · Fellowship</p>
+    </article>
+    <article class="honor">
+      <p class="honor__year">2025</p>
+      <h3 class="honor__name">Howard P. Hart Memorial Scholar</h3>
+      <p class="honor__sub">Scholarship</p>
+    </article>
+  </div>
+</section>
+
+
+<!-- ─── TEACHING ─── -->
+<section id="teaching" class="section">
+  <div class="section__head">
+    <span class="section__num">V.</span>
+    <h2 class="section__title">Teaching</h2>
+    <span class="section__rule"></span>
+    <span class="section__note">Graduate teaching assistant</span>
+  </div>
+
+  <ul class="teaching">
+    <li><span class="teaching__role">Graduate TA</span><span class="teaching__course">Government and Politics of Asia</span></li>
+    <li><span class="teaching__role">Graduate TA</span><span class="teaching__course">Revolutions in International Politics</span></li>
+    <li><span class="teaching__role">Graduate TA</span><span class="teaching__course">International Security</span></li>
+  </ul>
+</section>
+
+
+<!-- ─── HAIL / CONTACT ─── -->
+<section id="hail" class="section section--hail">
+  <div class="section__head">
+    <span class="section__num">VI.</span>
+    <h2 class="section__title">Hail</h2>
+    <span class="section__rule"></span>
+    <span class="section__note">Make contact</span>
+  </div>
+
+  <div class="hail">
+    <p class="hail__lede">
+      Open to writing assignments, briefings, OSINT/GEOINT trainings, and PhD application conversations on PLA Navy posture, undersea infrastructure, and Indo-Pacific maritime risk.
+    </p>
+    <ul class="hail__lines">
+      <li>
+        <span class="hail__lbl">Email</span>
+        <a class="hail__val" href="mailto:hello@example.com">hello@example.com</a>
+        <span class="hail__hint">replace before deploy</span>
+      </li>
+      <li>
+        <span class="hail__lbl">Taiwan Security Monitor</span>
+        <a class="hail__val" href="https://taiwansecurity.org" target="_blank" rel="noopener">taiwansecurity.org →</a>
+      </li>
+      <li>
+        <span class="hail__lbl">References</span>
+        <span class="hail__val">Professional, academic, and clearance/character references available upon request.</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer class="hull">
+  <div class="hull__inner">
+    <p class="hull__sig">&copy; <span id="year">2026</span> Ethan Connell · Fairfax, VA</p>
+    <p class="hull__rule"></p>
+    <p class="hull__note">Drawn after the fashion of an Admiralty chart. Set in Fraunces &amp; Spectral.</p>
+  </div>
+</footer>
+
+<script src="app.js" defer></script>
+</body>
+</html>

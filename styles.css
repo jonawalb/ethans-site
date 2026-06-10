@@ -523,6 +523,46 @@ a:hover { color: var(--ivory); }
 }
 
 /* =========================================================
+   INTERSTITIAL PLATE
+   ========================================================= */
+.interstitial {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: clamp(2rem, 5vw, 3.5rem) var(--gutter);
+}
+.interstitial__plate {
+  position: relative;
+  margin: 0;
+  padding: 10px;
+  background: var(--abyss);
+  border: 1px solid rgba(200,152,95,.55);
+  box-shadow:
+    0 18px 40px -20px rgba(0,0,0,.7),
+    inset 0 0 0 1px rgba(200,152,95,.12);
+  overflow: hidden;
+}
+.interstitial__plate img {
+  display: block; width: 100%; height: auto;
+  max-height: 360px; object-fit: cover; object-position: center 55%;
+  filter: saturate(.85) contrast(1.02);
+}
+.interstitial__plate::after {
+  content: ""; position: absolute; inset: 10px;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(10,24,40,.18) 0%, rgba(10,24,40,0) 35%, rgba(10,24,40,0) 65%, rgba(10,24,40,.32) 100%);
+}
+.interstitial__corner {
+  position: absolute; width: 14px; height: 14px;
+  border: 1px solid var(--brass);
+  z-index: 2;
+}
+.interstitial__corner--tl { top: -1px; left: -1px;  border-right: none; border-bottom: none; }
+.interstitial__corner--tr { top: -1px; right: -1px; border-left: none;  border-bottom: none; }
+.interstitial__corner--bl { bottom: -1px; left: -1px;  border-right: none; border-top: none; }
+.interstitial__corner--br { bottom: -1px; right: -1px; border-left: none;  border-top: none; }
+
+/* =========================================================
    HONORS
    ========================================================= */
 .honors {

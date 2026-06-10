@@ -1,0 +1,12 @@
+/* TEAM */
+  Site owner: Ethan Connell
+  Role: Maritime intelligence analyst; Assistant Director, Taiwan Security Monitor
+  Site: https://ethandconnell.com/
+  Location: United States
+
+/* SITE */
+  Last update: 2026-06-10
+  Standards: HTML5, CSS3, ES2015+
+  Components: None (vanilla)
+  Hosted: GitHub Pages
+  Built with: Hand-written HTML, CSS, JavaScript

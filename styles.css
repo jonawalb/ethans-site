@@ -509,6 +509,18 @@ a:hover { color: var(--ivory); }
   color: var(--ivory-dim); font-style: italic;
   font-size: .95rem; margin: 0;
 }
+.entry__tags {
+  list-style: none; padding: 0; margin: .55rem 0 0;
+  display: flex; flex-wrap: wrap; gap: .35rem;
+}
+.entry__tags li {
+  font-family: var(--mono); font-size: .62rem;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--brass);
+  padding: .25rem .55rem;
+  border: 1px solid rgba(200,152,95,.25);
+  background: rgba(200,152,95,.04);
+}
 .entry__tag {
   font-family: var(--mono); font-size: .65rem;
   letter-spacing: .18em; text-transform: uppercase;

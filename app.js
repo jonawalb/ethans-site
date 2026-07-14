@@ -15,6 +15,7 @@
     ".education",
     ".station",
     ".entry",
+    ".pclip",
     ".honor",
     ".teaching li",
     ".hail__lede",

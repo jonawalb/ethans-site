@@ -248,6 +248,13 @@ a:hover { color: var(--ivory); }
   display: block; width: 100%; height: auto;
   filter: saturate(.88) contrast(1.02);
 }
+/* hero portrait: crop tall/full-body shots to a flattering upper-body frame */
+.bridge__plate .plate__frame img {
+  aspect-ratio: 4 / 5;
+  height: auto;
+  object-fit: cover;
+  object-position: 50% 18%;
+}
 .plate__corner {
   position: absolute; width: 14px; height: 14px;
   border: 1px solid var(--brass);

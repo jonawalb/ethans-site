@@ -414,17 +414,17 @@ const CLASSES = {
   /* ---------- Missile age, 1980 to today ---------- */
   fac:      { era: 'modern', label: 'Missile boat', plural: 'missile boats', hp: 100, L: 70, B: 14, maxSpeed: 235, kn: 38, turn: 1.2, points: 150, stand: 460,
     gun:     { mounts: [0.28], dmg: 5, burst: 3, reload: 3.0, range: 640, speed: 820, spread: 0.07 },
-    missile: { stock: 4, salvo: 2, reload: 26, range: 1500, speed: 470, dmg: 55, turn: 2.0 },
+    missile: { stock: 6, salvo: 2, reload: 22, range: 1500, speed: 470, dmg: 55, turn: 2.0 },
     def:     { ciwsR: 0, ciwsL: 0, samR: 0, samL: 0, samCh: 0, stealth: 0 },
     lay:     { sup: [-0.12, 0.06], vls: [[-0.30, -0.18]], vlsX: -0.22 } },
   corvette: { era: 'modern', label: 'Corvette', plural: 'corvettes', hp: 260, L: 112, B: 17, maxSpeed: 175, kn: 28, turn: 0.85, points: 400, stand: 640,
     gun:     { mounts: [0.30], dmg: 8, burst: 3, reload: 2.6, range: 820, speed: 840, spread: 0.06 },
-    missile: { stock: 6, salvo: 2, reload: 24, range: 1700, speed: 460, dmg: 60, turn: 1.9 },
+    missile: { stock: 10, salvo: 3, reload: 20, range: 1700, speed: 460, dmg: 60, turn: 1.9 },
     def:     { ciwsR: 230, ciwsL: 1.2, samR: 0, samL: 0, samCh: 0, stealth: 0 },
     lay:     { sup: [-0.14, 0.08], vls: [[-0.34, -0.22]], vlsX: -0.28, ciws: [0.10], heli: -0.40 } },
   destroyer:{ era: 'modern', label: 'Destroyer', plural: 'destroyers', hp: 480, L: 168, B: 22, maxSpeed: 185, kn: 30, turn: 0.62, points: 800, stand: 780,
     gun:     { mounts: [0.30], dmg: 10, burst: 3, reload: 2.4, range: 920, speed: 850, spread: 0.055 },
-    missile: { stock: 8, salvo: 2, reload: 22, range: 1900, speed: 470, dmg: 62, turn: 1.9 },
+    missile: { stock: 14, salvo: 4, reload: 18, range: 1900, speed: 470, dmg: 62, turn: 1.9 },
     def:     { ciwsR: 240, ciwsL: 1.3, samR: 900, samL: 0.55, samCh: 1, stealth: 0 },
     lay:     { sup: [-0.06, 0.12], vls: [[0.18, 0.27], [-0.32, -0.20]], vlsX: -0.26, ciws: [0.08, -0.30], fun: [-0.12, -0.18], heli: -0.40 } },
 
@@ -1044,7 +1044,7 @@ function makeShip(kind, x, y, heading, isPlayer) {
     hp: c.hp, maxHp: c.hp, reload: { '-1': 0, '1': 0 }, aim: { '-1': -1, '1': -1 },
     queue: [], trail: [], trailT: 0, decals: [], holes: [], smokeT: 0, funT: 0, eff: 1, tAng: 0,
     missiles: c.missile ? c.missile.stock : 0,
-    ciwsAng: heading, lock: null, decoys: c.decoy && c.missile ? (isPlayer ? c.decoy.charges : 2) : 0, decoyCd: 0,
+    rearm: 0, ciwsAng: heading, lock: null, decoys: c.decoy && c.missile ? (isPlayer ? c.decoy.charges : 2) : 0, decoyCd: 0,
     sinking: false, sinkT: 0, sinkDir: Math.random() < 0.5 ? -1 : 1, gone: false,
     repairing: 0, repairCd: 0,
     ai: { offset: rand(-0.45, 0.45), side: 0 },
@@ -1128,6 +1128,7 @@ function edge(code) {
     }
     case 'Tab': if (isModern(player)) cycleTarget(); break;
     case 'KeyX': if (isModern(player)) tryDecoy(true); break;
+    case 'KeyV': if (isModern(player)) tryRearm(); break;
     case 'KeyR': tryRepair(); break;
   }
 }
@@ -1150,6 +1151,7 @@ function tryGuns(report) {
 }
 function tryMissiles(report) {
   const p = player;
+  if (p.rearm > 0) { if (report) toast('Cells locked while rearming'); return false; }
   if (p.missiles <= 0) { if (report) toast('Magazine empty. Resupply after the wave'); return false; }
   if (p.reload[1] > 0) { if (report) toast(`Missile cells cycling: ${Math.ceil(p.reload[1])}s`); return false; }
   const r = fireMissiles(p);
@@ -1187,6 +1189,14 @@ function tryDecoy(report) {
   dropDecoy(p);
   if (report) toast('Decoy cloud out. It blooms in a moment: put it between you and the missiles');
   return true;
+}
+// Rearming is a deliberate time cost: the ship crawls and the cells are locked until it finishes.
+function tryRearm() {
+  const p = player, m = p.c.missile;
+  if (p.rearm > 0) return;
+  if (p.missiles >= m.stock) { toast('Magazine is full'); return; }
+  p.rearm = 10;
+  toast('Rearming: cells locked and speed cut for 10s. Open the range first');
 }
 function tryRepair() {
   const p = player, sail = p.c.era === 'sail';
@@ -1609,6 +1619,7 @@ function physics(s, dt) {
   s.eff = eff; s.offDeg = offDeg;
   let target = c.maxSpeed * s.sail * eff * wp * (0.72 + 0.28 * s.hp / s.maxHp);
   if (s.repairing > 0) target = Math.min(target, c.maxSpeed * 0.25);
+  if (s.rearm > 0) target = Math.min(target, c.maxSpeed * 0.35);
   const acc = target > s.speed ? c.acc : c.dec;
   s.speed += clamp(target - s.speed, -acc * dt, acc * dt);
   // turning: sluggish at low speed, with rotational inertia
@@ -1647,6 +1658,15 @@ function physics(s, dt) {
   }
 
   if (s.decoyCd > 0) s.decoyCd = Math.max(0, s.decoyCd - dt);
+  if (s.rearm > 0) {
+    s.rearm -= dt;
+    if (s.rearm <= 0) {
+      s.rearm = 0;
+      const add = Math.min(c.missile.stock - s.missiles, Math.ceil(c.missile.stock * 0.75));
+      s.missiles += add;
+      if (s.isPlayer) toast(`Rearm complete: +${add} missiles`);
+    }
+  }
   // reloads, repairs
   for (const side of [-1, 1]) if (s.reload[side] > 0) s.reload[side] = Math.max(0, s.reload[side] - dt);
   if (s.repairing > 0) {
@@ -2511,7 +2531,9 @@ function updateHud(dt) {
     const off = p.offDeg || 90;
     hud.pos.textContent = `${pointOfSailName(off)} · ${Math.round(sailEfficiency(off) * 100)}% of best speed`;
   } else {
-    hud.pos.textContent = `Engines ${Math.round(p.sail * 100)}% · ${windName(windKn)}`;
+    const why = p.rearm > 0 ? ' · rearming, slowed' : p.repairing > 0 ? ' · repairing, slowed'
+      : p.hp < p.maxHp * 0.99 ? ` · damage: −${Math.round((1 - (0.72 + 0.28 * p.hp / p.maxHp)) * 100)}% speed` : '';
+    hud.pos.textContent = `Engines ${Math.round(p.sail * 100)}%${why}`;
   }
   hud.wave.textContent = Math.max(1, wave);
   hud.left.textContent = ships.filter(s => !s.isPlayer && !s.sinking).length + pending.length;
@@ -2525,7 +2547,8 @@ function updateHud(dt) {
     else if (r > 0) setGauge(hud.gPort, 1 - r / c.gun.reload, `Reloading ${r.toFixed(1)}s`, 'busy');
     else setGauge(hud.gPort, 1, nearestHostile(p, c.gun.range) ? 'Ready' : 'Ready · no target', 'ready');
     const m = p.reload[1], st = p.missiles;
-    if (st <= 0) setGauge(hud.gStar, 0, 'Magazine empty', 'off');
+    if (p.rearm > 0) setGauge(hud.gStar, 1 - p.rearm / 10, `Rearming ${p.rearm.toFixed(1)}s`, 'busy');
+    else if (st <= 0) setGauge(hud.gStar, 0, 'Empty · V to rearm', 'off');
     else if (m > 0) setGauge(hud.gStar, 1 - m / c.missile.reload, `Reload ${Math.ceil(m)}s · ${st} left`, 'busy');
     else setGauge(hud.gStar, 1, `Ready · ${st} left`, 'ready');
   } else {
@@ -2614,7 +2637,7 @@ function renderControls() {
     [['S'], sail ? 'Take in sail' : 'Engines down'],
     [['A', 'D'], 'Turn to port / starboard'],
   ];
-  if (modern) rows.push([['Q'], 'Fire the guns at the nearest hostile, any bearing'], [['E'], 'Launch an anti-ship missile salvo'], [['\u2190', '\u2192'], 'Slew the close-in gun (CIWS)'], [['Tab'], 'Cycle your target lock'], [['X'], 'Deploy a decoy cloud'], [['Space'], 'Fire guns and missiles']);
+  if (modern) rows.push([['Q'], 'Fire the guns at the nearest hostile, any bearing'], [['E'], 'Launch an anti-ship missile salvo'], [['\u2190', '\u2192'], 'Slew the close-in gun (CIWS)'], [['V'], 'Rearm missiles (10s, slow, cells locked)'], [['Tab'], 'Cycle your target lock'], [['X'], 'Deploy a decoy cloud'], [['Space'], 'Fire guns and missiles']);
   else rows.push([['Q'], 'Fire the port ' + (c.turrets ? 'turrets' : 'broadside') + ' (left)'], [['E'], 'Fire the starboard ' + (c.turrets ? 'turrets' : 'broadside') + ' (right)'], [['Space'], 'Fire every loaded ' + (c.turrets ? 'battery' : 'broadside')]);
   rows.push([['R'], sail ? 'Repair the hull' : 'Damage control: repair the hull'], [['Esc'], 'Pause'], [['F', 'M'], 'Fullscreen · music']);
   const o = $('orders'); o.textContent = '';

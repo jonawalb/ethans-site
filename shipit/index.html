@@ -156,6 +156,7 @@ select:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
       <div><span class="lbl">Speed</span><b id="spdTxt">0.0 kn</b></div>
     </div>
     <div id="posTxt">Beam reach</div>
+    <div id="tgtTxt" class="note" hidden></div>
     <div id="threat" role="alert" hidden></div>
   </section>
 
@@ -184,6 +185,11 @@ select:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
     </div>
     <div class="gauge" id="gStar">
       <div class="row"><span class="lbl"><kbd>E</kbd> <span id="lblE">Starboard</span></span></div>
+      <div class="bar"><i></i></div>
+      <div class="row"><b class="state">Ready</b></div>
+    </div>
+    <div class="gauge" id="gDecoy" hidden>
+      <div class="row"><span class="lbl"><kbd>X</kbd> Decoys</span></div>
       <div class="bar"><i></i></div>
       <div class="row"><b class="state">Ready</b></div>
     </div>
@@ -330,7 +336,8 @@ const ERAS = [
 const ERA_DEF = {
   sail:   { rig: 'sail',   mode: 'broadside', windDep: 1, kn: 10, acc: 11, dec: 15, slew: 0.45, turnAcc: 1.3, zoom: 1,    flash: 8,  shellSpeed: 560, arc: 0.33, flag: 'GB' },
   steam:  { rig: 'steam',  mode: 'broadside', windDep: 0, kn: 10, acc: 12, dec: 16, slew: 0.35, turnAcc: 1.0, zoom: 1,    flash: 9,  shellSpeed: 600, arc: 0.38, flag: 'GB', eflag: 'OPFOR' },
-  modern: { rig: 'modern', mode: 'modern',    windDep: 0, kn: 30, acc: 20, dec: 26, slew: 0.55, turnAcc: 1.1, zoom: 0.62, flash: 7,  shellSpeed: 840, arc: 0.5,  flag: 'OPFOR' },
+  modern: { rig: 'modern', mode: 'modern',    windDep: 0, kn: 30, acc: 20, dec: 26, slew: 0.55, turnAcc: 1.1, zoom: 0.62, flash: 7,  shellSpeed: 840, arc: 0.5,  flag: 'OPFOR',
+            decoy: { charges: 4, cd: 16, r: 170, bloom: 1.4, life: 9 } },
 };
 const ERA_PAL = {
   steam:  { p: { hull: '#23272b', band: '#d8d0b8', deck: '#9a7b4c' }, e: { hull: '#2d1f1f', band: '#a8322a', deck: '#8a6e46' } },
@@ -992,7 +999,7 @@ const Snd = {
    World state
    ========================================================= */
 let T = 0, mode = 'menu', paused = false;
-let ships = [], balls = [], missiles = [], tracers = [], parts = [], debris = [], floaters = [];
+let ships = [], balls = [], missiles = [], decoys = [], tracers = [], parts = [], debris = [], floaters = [];
 let player = null, nextId = 1;
 let windFrom = rand(-Math.PI, Math.PI), windTarget = windFrom, windTimer = 30, windTo = windFrom + Math.PI;
 let wave = 0, cleared = 0, score = 0, sunk = 0, pending = [], intermission = 0, overTimer = -1;
@@ -1037,6 +1044,7 @@ function makeShip(kind, x, y, heading, isPlayer) {
     hp: c.hp, maxHp: c.hp, reload: { '-1': 0, '1': 0 }, aim: { '-1': -1, '1': -1 },
     queue: [], trail: [], trailT: 0, decals: [], holes: [], smokeT: 0, funT: 0, eff: 1, tAng: 0,
     missiles: c.missile ? c.missile.stock : 0,
+    ciwsAng: heading, lock: null, decoys: c.decoy && c.missile ? (isPlayer ? c.decoy.charges : 2) : 0, decoyCd: 0,
     sinking: false, sinkT: 0, sinkDir: Math.random() < 0.5 ? -1 : 1, gone: false,
     repairing: 0, repairCd: 0,
     ai: { offset: rand(-0.45, 0.45), side: 0 },
@@ -1044,7 +1052,7 @@ function makeShip(kind, x, y, heading, isPlayer) {
 }
 
 function resetWorld() {
-  ships = []; balls = []; missiles = []; tracers = []; parts = []; debris = []; floaters = [];
+  ships = []; balls = []; missiles = []; decoys = []; tracers = []; parts = []; debris = []; floaters = [];
   player = makeShip(currentShip, 0, 0, windFrom + Math.PI / 2, true);
   player.speed = player.c.maxSpeed * 0.4;
   ships.push(player);
@@ -1118,6 +1126,8 @@ function edge(code) {
       }
       break;
     }
+    case 'Tab': if (isModern(player)) cycleTarget(); break;
+    case 'KeyX': if (isModern(player)) tryDecoy(true); break;
     case 'KeyR': tryRepair(); break;
   }
 }
@@ -1146,6 +1156,38 @@ function tryMissiles(report) {
   if (r === 'none') { if (report) toast('No target inside missile range'); return false; }
   lastFire = T; if (report) toast('Missiles away'); return true;
 }
+/* ---------- Target lock (Tab) and decoys (X) ---------- */
+function lockedTarget(s) {
+  const t = s.lock;
+  return t && !t.sinking && ships.includes(t) ? t : null;
+}
+function cycleTarget() {
+  const p = player, l = ships.filter(o => !o.isPlayer && !o.sinking)
+    .sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
+  if (!l.length) return;
+  const cur = lockedTarget(p), i = l.indexOf(cur);
+  p.lock = l[(i + 1) % l.length];
+  toast(`Target: ${p.lock.c.label} · ${Math.round(Math.hypot(p.lock.x - p.x, p.lock.y - p.y))} range${l.length > 1 ? ` · Tab for next (${l.indexOf(p.lock) + 1}/${l.length})` : ''}`);
+}
+// A decoy cloud is dropped where you stand and then stays put, drifting downwind. It takes a
+// moment to bloom, and only seduces missiles that fly into it, so it must go out early and
+// you must then steer so it sits between you and the shooter.
+function dropDecoy(s) {
+  const d = s.c.decoy;
+  s.decoys--; s.decoyCd = d.cd;
+  decoys.push({ x: s.x, y: s.y, t: 0, bloom: d.bloom, life: d.life, r: d.r, faction: s.isPlayer ? 0 : 1, isDecoy: true, sinking: false, seed: Math.random() * 100 });
+  for (let k = 0; k < 8; k++) addP('smoke', s.x, s.y, rand(-30, 30), rand(-30, 30), rand(1.2, 2), rand(4, 7), { grow: 8, col: '#e4ecef', a0: 0.5 });
+  const [vol, pan] = audioPos(s.x, s.y);
+  Snd.boom(0.18 * vol, pan);
+}
+function tryDecoy(report) {
+  const p = player;
+  if (p.decoys <= 0) { if (report) toast('Decoy launchers empty. Resupply after the wave'); return false; }
+  if (p.decoyCd > 0) { if (report) toast(`Decoys reloading: ${Math.ceil(p.decoyCd)}s`); return false; }
+  dropDecoy(p);
+  if (report) toast('Decoy cloud out. It blooms in a moment: put it between you and the missiles');
+  return true;
+}
 function tryRepair() {
   const p = player, sail = p.c.era === 'sail';
   if (p.repairing > 0) return;
@@ -1156,7 +1198,7 @@ function tryRepair() {
 window.addEventListener('keydown', e => {
   Snd.ctx && Snd.ctx.state === 'suspended' && Snd.ctx.resume().catch(() => {});
   const playing = mode === 'play';
-  if (playing && ['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
+  if (playing && ['Space', 'Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
   if (e.code === 'Escape' || e.code === 'KeyP') {
     if (playing) { togglePause(); e.preventDefault(); }
     else if (!$('ships').hidden) show('era');
@@ -1243,7 +1285,7 @@ function spawnBall(s, q) {
 
 /* ---------- Modern guns: any bearing, auto-laid on the nearest hostile ---------- */
 function fireGuns(s) {
-  const g = s.c.gun, tgt = nearestHostile(s, g.range);
+  const g = s.c.gun, lk = lockedTarget(s), tgt = (lk && Math.hypot(lk.x - s.x, lk.y - s.y) < g.range) ? lk : nearestHostile(s, g.range);
   if (!tgt) return false;
   s.reload[-1] = g.reload * (s.isPlayer ? 1 : enemyReload);
   g.mounts.forEach((f, mi) => {
@@ -1282,6 +1324,8 @@ function fireMissiles(s) {
   for (const o of ships) if (o !== s && !o.sinking && o.isPlayer !== s.isPlayer) { const d = Math.hypot(o.x - s.x, o.y - s.y); if (d < m.range) tg.push([d, o]); }
   if (!tg.length) return 'none';
   tg.sort((a, b) => a[0] - b[0]);
+  const lk = lockedTarget(s);
+  if (lk && tg.some(t => t[1] === lk)) tg.splice(0, tg.length, [0, lk]);   // a locked target takes the whole salvo
   const n = Math.min(m.salvo, s.missiles);
   for (let i = 0; i < n; i++) s.queue.push({ t: 0.15 + i * 0.5, missile: true, tgt: tg[i % tg.length][1] });
   s.missiles -= n;
@@ -1305,16 +1349,38 @@ function spawnMissile(s, q) {
   Snd.missile(0.38 * vol, pan);
 }
 function updateMissiles(dt) {
+  const wdx = Math.cos(windTo) * 8, wdy = Math.sin(windTo) * 8;
+  for (const d of decoys) { d.t += dt; d.x += wdx * dt; d.y += wdy * dt; }
+  if (decoys.some(d => d.t > d.life)) decoys = decoys.filter(d => d.t <= d.life);
   for (const m of missiles) {
     if (m.dead) continue;
     m.t += dt;
     if (m.t > m.loseAt) m.lost = true;
+    if (m.tgt && m.tgt.isDecoy && m.tgt.t > m.tgt.life) m.lost = true;   // the cloud has dispersed
+    // a blooming decoy of the other side may seduce the seeker as it passes through
+    if (!m.lost && !(m.tgt && m.tgt.isDecoy)) {
+      for (const d of decoys) {
+        if (d.t < d.bloom || d.faction === m.faction) continue;
+        if (Math.hypot(m.x - d.x, m.y - d.y) >= d.r) continue;
+        m.seen = m.seen || [];
+        if (m.seen.includes(d)) continue;
+        m.seen.push(d);
+        if (Math.random() < 0.85) { m.tgt = d; break; }
+      }
+    }
     if (m.tgt && !m.tgt.sinking && !m.lost) {
       const want = Math.atan2(m.tgt.y - m.y, m.tgt.x - m.x);
       m.h = angNorm(m.h + clamp(angNorm(want - m.h), -m.turn * dt, m.turn * dt));
     }
     const sp = m.spd * Math.min(1, 0.3 + m.t / 0.7);
     m.x += Math.cos(m.h) * sp * dt; m.y += Math.sin(m.h) * sp * dt;
+    if (m.tgt && m.tgt.isDecoy && Math.hypot(m.x - m.tgt.x, m.y - m.tgt.y) < 22) {
+      m.dead = true;
+      addP('flash', m.x, m.y, 0, 0, 0.25, 12, { ang: rand(0, TAU) });
+      for (let k = 0; k < 4; k++) addP('smoke', m.x, m.y, rand(-25, 25), rand(-25, 25), rand(1, 2), rand(3, 6), { grow: 7, col: '#c9c5bd', a0: 0.5 });
+      const [vol, pan] = audioPos(m.x, m.y); Snd.boom(0.25 * vol, pan);
+      continue;
+    }
     m.trailT -= dt;
     if (m.trailT <= 0) {
       m.trailT = 0.035;
@@ -1347,13 +1413,21 @@ function updateMissiles(dt) {
 // spends less time inside the envelope and so is shot down less often.
 function updateDefense(dt) {
   for (const s of ships) {
+    if (!s.isPlayer && !s.sinking && s.decoys > 0 && s.decoyCd <= 0) {
+      if (missiles.some(m => !m.dead && m.tgt === s && Math.hypot(m.x - s.x, m.y - s.y) < 650)) dropDecoy(s);
+    }
     const d = s.c.def;
     if (!d || s.sinking || (!d.ciwsR && !d.samR)) continue;
     let samBusy = 0;
     for (const m of missiles) {
       if (m.dead || m.tgt !== s) continue;
       const dist = Math.hypot(m.x - s.x, m.y - s.y);
-      if (d.ciwsR && dist < d.ciwsR && Math.random() < 1 - Math.exp(-d.ciwsL * dt)) { intercept(s, m, 'ciws'); continue; }
+      if (d.ciwsR && dist < d.ciwsR) {
+        // the player's close-in gun is manual: lethal inside its cone, blind outside it
+        let hz = d.ciwsL;
+        if (s.isPlayer) hz = Math.abs(angNorm(Math.atan2(m.y - s.y, m.x - s.x) - s.ciwsAng)) < 0.35 ? d.ciwsL * 2.4 : 0;
+        if (hz > 0 && Math.random() < 1 - Math.exp(-hz * dt)) { intercept(s, m, 'ciws'); continue; }
+      }
       if (d.samR && dist < d.samR && dist > 70 && samBusy < d.samCh) {
         samBusy++;
         if (Math.random() < 1 - Math.exp(-d.samL * dt)) intercept(s, m, 'sam');
@@ -1467,7 +1541,11 @@ function update(dt) {
     const off = Math.abs(angNorm(player.heading - windFrom)) * 180 / Math.PI;
     if (player.c.windDep > 0.5 && off < 55) player.turnInput = 1;
   } else if (mode === 'play' && player && !player.sinking) {
-    player.turnInput = ((keys.KeyD || keys.ArrowRight) ? 1 : 0) - ((keys.KeyA || keys.ArrowLeft) ? 1 : 0);
+    if (isModern(player)) {
+      // on a missile-age ship the arrow keys slew the close-in gun; A and D steer
+      player.turnInput = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0);
+      player.ciwsAng = angNorm(player.ciwsAng + ((keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0)) * 2.4 * dt);
+    } else player.turnInput = ((keys.KeyD || keys.ArrowRight) ? 1 : 0) - ((keys.KeyA || keys.ArrowLeft) ? 1 : 0);
     player.sailTarget = THROTTLES[player.c.era][player.sailIdx].v;
   }
 
@@ -1568,6 +1646,7 @@ function physics(s, dt) {
     s.tAng = angNorm(s.tAng + clamp(angNorm(want - s.tAng), -1.6 * dt, 1.6 * dt));
   }
 
+  if (s.decoyCd > 0) s.decoyCd = Math.max(0, s.decoyCd - dt);
   // reloads, repairs
   for (const side of [-1, 1]) if (s.reload[side] > 0) s.reload[side] = Math.max(0, s.reload[side] - dt);
   if (s.repairing > 0) {
@@ -1785,6 +1864,7 @@ function waveLogic(dt) {
     if (c.missile) {
       const add = Math.min(Math.ceil(c.missile.stock / 2), c.missile.stock - player.missiles);
       player.missiles += add; if (add > 0) extra = ` · magazine +${add}`;
+      if (c.decoy) player.decoys = Math.min(c.decoy.charges, player.decoys + 2);
     }
     intermission = 7;
     showBanner(`Wave ${wave} defeated`, `+${bonus} bonus · ${c.era === 'sail' ? 'carpenters patch' : 'repair crews restore'} ${Math.round(heal)} hull${extra}`);
@@ -1805,6 +1885,7 @@ function render() {
 
   drawSea();
   drawWakes();
+  drawDecoys();
   drawDebris();
   if (mode === 'play') { if (isModern(player)) drawRanges(); else drawArcs(); }
   const order = ships.slice().sort((a, b) => (b.sinking - a.sinking) || (a.isPlayer - b.isPlayer));
@@ -1904,6 +1985,23 @@ function drawWakes() {
   ctx.globalAlpha = 1;
 }
 
+function drawDecoys() {
+  for (const d of decoys) {
+    const u = d.t / d.life, b = Math.min(1, d.t / d.bloom), live = d.t >= d.bloom;
+    const r = d.r * (0.35 + 0.65 * b), a = (1 - u * u) * (live ? 1 : 0.6);
+    const g = ctx.createRadialGradient(d.x, d.y, 0, d.x, d.y, r);
+    g.addColorStop(0, `rgba(225,235,240,${0.28 * a})`); g.addColorStop(1, 'rgba(225,235,240,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(d.x, d.y, r, 0, TAU); ctx.fill();
+    for (let k = 0; k < 9; k++) {
+      const an = d.seed + k * 2.4 + T * 0.15, rr = r * (0.2 + 0.7 * ((k * 0.37) % 1));
+      ctx.globalAlpha = 0.5 * a; ctx.fillStyle = '#eef4f6';
+      ctx.beginPath(); ctx.arc(d.x + Math.cos(an) * rr, d.y + Math.sin(an) * rr, 2.2, 0, TAU); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.setLineDash([5, 7]); ctx.lineWidth = 1.2 / ZOOM; ctx.strokeStyle = live ? `rgba(160,215,235,${0.7 * a})` : `rgba(200,200,200,${0.3 * a})`;
+    ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+  }
+}
 function drawDebris() {
   for (const d of debris) {
     const fade = Math.min(1, (d.life - d.t) / 5) * Math.min(1, d.t * 3);
@@ -1974,6 +2072,19 @@ function drawArcs() {
 // Missile-age ships have no firing arc: show gun and missile range rings and bracket the nearest hostile.
 function drawRanges() {
   const p = player; if (!p || p.sinking) return;
+  if (p.c.def.ciwsR) {
+    let hot = false;
+    for (const m of missiles) {
+      if (m.faction === 1 && m.tgt === p && Math.hypot(m.x - p.x, m.y - p.y) < p.c.def.ciwsR &&
+          Math.abs(angNorm(Math.atan2(m.y - p.y, m.x - p.x) - p.ciwsAng)) < 0.35) hot = true;
+    }
+    const R = p.c.def.ciwsR, col = hot ? '255,210,110' : '170,205,225';
+    const g = ctx.createRadialGradient(p.x, p.y, 10, p.x, p.y, R);
+    g.addColorStop(0, `rgba(${col},0.02)`); g.addColorStop(1, `rgba(${col},${hot ? 0.38 : 0.2})`);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.arc(p.x, p.y, R, p.ciwsAng - 0.35, p.ciwsAng + 0.35); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = `rgba(${col},0.7)`; ctx.lineWidth = 1.2 / ZOOM;
+    ctx.beginPath(); ctx.arc(p.x, p.y, R, p.ciwsAng - 0.35, p.ciwsAng + 0.35); ctx.stroke();
+  }
   const want = (nearestEnemyDist() < p.c.missile.range * 1.15 || T - lastFire < 2.5) ? 1 : 0;
   arcVis += (want - arcVis) * Math.min(1, 4 * (1 / 60));
   if (arcVis < 0.02) return;
@@ -1983,12 +2094,12 @@ function drawRanges() {
   ctx.strokeStyle = `rgba(150,200,230,${0.26 * arcVis})`;
   ctx.beginPath(); ctx.arc(p.x, p.y, p.c.missile.range, 0, TAU); ctx.stroke();
   ctx.setLineDash([]);
-  const t = nearestHostile(p, p.c.missile.range);
+  const lk = lockedTarget(p), t = lk || nearestHostile(p, p.c.missile.range);
   if (t) {
     const inGun = Math.hypot(t.x - p.x, t.y - p.y) < p.c.gun.range;
     const r = t.c.L * 0.42 + 8, q = r * 0.4;
     ctx.strokeStyle = inGun ? `rgba(240,195,90,${0.9 * arcVis})` : `rgba(150,200,230,${0.8 * arcVis})`;
-    ctx.lineWidth = 1.8 / ZOOM;
+    ctx.lineWidth = (lk ? 3 : 1.8) / ZOOM;
     ctx.beginPath();
     for (const sx of [-1, 1]) for (const sy of [-1, 1]) {
       const cx = t.x + sx * r, cy = t.y + sy * r;
@@ -2370,7 +2481,7 @@ const hud = {
   hpNum: $('hpNum'), hpBar: $('hpBar'), sail: $('sailTxt'), spd: $('spdTxt'), pos: $('posTxt'),
   wave: $('waveTxt'), left: $('leftTxt'), sunk: $('sunkTxt'), score: $('scoreTxt'), wind: $('windTxt'),
   gPort: $('gPort'), gStar: $('gStar'), gRep: $('gRep'),
-  tag: $('shipTag'), name: $('shipName'), sailLbl: $('sailLbl'), lblQ: $('lblQ'), lblE: $('lblE'), lblR: $('lblR'), threat: $('threat'),
+  tgt: $('tgtTxt'), gDecoy: $('gDecoy'), tag: $('shipTag'), name: $('shipName'), sailLbl: $('sailLbl'), lblQ: $('lblQ'), lblE: $('lblE'), lblR: $('lblR'), threat: $('threat'),
 };
 let hudT = 0;
 function applyShipHud(c) {
@@ -2379,6 +2490,8 @@ function applyShipHud(c) {
   hud.lblQ.textContent = c.mode === 'modern' ? 'Guns' : c.turrets ? 'Port turrets' : 'Port guns';
   hud.lblE.textContent = c.mode === 'modern' ? 'Missiles' : c.turrets ? 'Stbd turrets' : 'Starboard';
   hud.lblR.textContent = c.era === 'sail' ? 'Repair' : 'Damage control';
+  hud.gDecoy.hidden = c.mode !== 'modern';
+  hud.tgt.hidden = c.mode !== 'modern';
 }
 function setGauge(el, frac, state, cls) {
   el.querySelector('.bar i').style.width = (clamp(frac, 0, 1) * 100).toFixed(1) + '%';
@@ -2426,6 +2539,15 @@ function updateHud(dt) {
   if (p.repairing > 0) setGauge(hud.gRep, 1 - p.repairing / REPAIR_TIME, `Repairing ${p.repairing.toFixed(1)}s`, 'busy');
   else if (p.repairCd > 0) setGauge(hud.gRep, 1 - p.repairCd / REPAIR_CD, `Cooldown ${Math.ceil(p.repairCd)}s`, 'off');
   else setGauge(hud.gRep, 1, p.hp >= p.maxHp ? 'Hull sound' : 'Ready', 'ready');
+  if (isModern(p)) {
+    const lk = lockedTarget(p), tt = lk || nearestHostile(p, Infinity);
+    hud.tgt.hidden = !tt;
+    if (tt) hud.tgt.textContent = `Target: ${tt.c.label} · ${Math.round(Math.hypot(tt.x - p.x, tt.y - p.y))}${lk ? ' · locked' : ' · nearest'} · Tab`;
+    const dd = c.decoy;
+    if (p.decoys <= 0) setGauge(hud.gDecoy, 0, 'Empty', 'off');
+    else if (p.decoyCd > 0) setGauge(hud.gDecoy, 1 - p.decoyCd / dd.cd, `Reload ${Math.ceil(p.decoyCd)}s · ${p.decoys} left`, 'busy');
+    else setGauge(hud.gDecoy, 1, `Ready · ${p.decoys} left`, 'ready');
+  }
   // incoming missile warning
   let inbound = 0;
   for (const m of missiles) if (m.faction === 1 && m.tgt === p && !m.dead) inbound++;
@@ -2492,7 +2614,7 @@ function renderControls() {
     [['S'], sail ? 'Take in sail' : 'Engines down'],
     [['A', 'D'], 'Turn to port / starboard'],
   ];
-  if (modern) rows.push([['Q'], 'Fire the guns at the nearest hostile, any bearing'], [['E'], 'Launch an anti-ship missile salvo'], [['Space'], 'Fire everything that is ready']);
+  if (modern) rows.push([['Q'], 'Fire the guns at the nearest hostile, any bearing'], [['E'], 'Launch an anti-ship missile salvo'], [['\u2190', '\u2192'], 'Slew the close-in gun (CIWS)'], [['Tab'], 'Cycle your target lock'], [['X'], 'Deploy a decoy cloud'], [['Space'], 'Fire guns and missiles']);
   else rows.push([['Q'], 'Fire the port ' + (c.turrets ? 'turrets' : 'broadside') + ' (left)'], [['E'], 'Fire the starboard ' + (c.turrets ? 'turrets' : 'broadside') + ' (right)'], [['Space'], 'Fire every loaded ' + (c.turrets ? 'battery' : 'broadside')]);
   rows.push([['R'], sail ? 'Repair the hull' : 'Damage control: repair the hull'], [['Esc'], 'Pause'], [['F', 'M'], 'Fullscreen · music']);
   const o = $('orders'); o.textContent = '';
@@ -2518,7 +2640,8 @@ function renderControls() {
   else tips = [
     `Q fires the guns at the nearest hostile inside gun range, in any direction. Rounds are laid for you.`,
     'E launches missiles at the nearest hostiles. The magazine is limited: open the fight with them, finish with guns. Each defeated wave resupplies half the magazine.',
-    'Air defence works on its own. SAMs engage at long range and close-in guns last. Red rings mark missiles that are coming for you.',
+    'Tab cycles your lock. Guns and missiles go for the locked ship; with no lock they take the nearest. The bracket shows who you have.',
+    'SAMs work on their own, but the close-in gun is yours: the arrow keys slew its cone, and it only kills missiles inside the cone (it lights gold when one is). Red rings mark missiles coming for you. X drops a decoy cloud where you are: it blooms after a moment, stays put and drifts downwind, and only draws missiles that fly into it. Drop it early, then steer so it sits between you and the shooter.',
     'Faster missiles spend less time in a defender’s envelope, so fewer are shot down. Stealth hulls make some of them lose their lock altogether.',
   ];
   const t = $('tips'); t.textContent = '';

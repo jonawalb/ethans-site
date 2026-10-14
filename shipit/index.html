@@ -40,8 +40,8 @@ body{margin:0;background:var(--sea);color:var(--bone);font-family:var(--body);fo
 .panel::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
 .eyebrow{font-family:var(--display);font-size:12px;letter-spacing:.14em;color:var(--brass);text-transform:uppercase}
 .lbl{font-family:var(--display);font-size:13px;letter-spacing:.08em;color:var(--muted)}
-#ship{top:calc(16px + env(safe-area-inset-top,0px));left:16px;width:250px;display:flex;flex-direction:column;gap:6px}
-#ship .name{font-family:var(--display);font-size:26px;line-height:1;color:var(--bone)}
+#ship{top:calc(16px + env(safe-area-inset-top,0px));left:16px;width:270px;display:flex;flex-direction:column;gap:6px}
+#ship .name{font-family:var(--display);font-size:26px;line-height:1.02;color:var(--bone)}
 .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .bar{height:8px;background:rgba(255,255,255,.07);border:1px solid var(--brass-dim);position:relative;overflow:hidden}
 .bar i{position:absolute;inset:0 auto 0 0;background:var(--green);transition:width .15s linear}
@@ -49,6 +49,7 @@ body{margin:0;background:var(--sea);color:var(--bone);font-family:var(--body);fo
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px}
 .two b{display:block;font-size:18px;font-weight:600}
 #posTxt{font-style:italic;color:var(--muted);font-size:15px}
+#threat{color:var(--red);font-weight:600;font-size:15px;letter-spacing:.06em}
 #tally{top:calc(16px + env(safe-area-inset-top,0px));right:16px;display:grid;grid-template-columns:auto auto;gap:4px 18px;min-width:190px}
 #tally .v{text-align:right;font-weight:600;font-size:18px}
 #tally .big{font-size:24px;color:var(--brass)}
@@ -56,8 +57,8 @@ body{margin:0;background:var(--sea);color:var(--bone);font-family:var(--body);fo
 #compass{width:150px;height:150px;display:block}
 #windTxt{font-size:14px;color:var(--muted);text-align:center;line-height:1.25}
 #guns{left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;gap:22px;padding:10px 18px}
-.gauge{width:150px;display:flex;flex-direction:column;gap:5px}
-.gauge .row b{font-size:14px;font-weight:600}
+.gauge{width:160px;display:flex;flex-direction:column;gap:5px}
+.gauge .row b{font-size:14px;font-weight:600;white-space:nowrap}
 .gauge .bar i{background:var(--brass)}
 .gauge.ready .bar i{background:var(--green)}
 .gauge.ready .state{color:var(--green)}
@@ -91,12 +92,15 @@ h2.title{font-family:var(--display);font-weight:400;font-size:38px;margin:0;line
 .btn:hover{background:rgba(207,165,75,.14)}
 .btn.primary{background:var(--brass);color:#1b1307}
 .btn.primary:hover{background:#e0b85c}
-.toggles{display:flex;gap:18px;flex-wrap:wrap;font-size:16px;color:var(--muted)}
+.toggles{display:flex;gap:18px;flex-wrap:wrap;align-items:center;font-size:16px;color:var(--muted)}
 .toggle{display:flex;align-items:center;gap:8px;cursor:pointer}
 .toggle input{position:absolute;opacity:0;width:1px;height:1px}
 .toggle span{width:30px;height:16px;border:1px solid var(--brass-dim);border-radius:9px;position:relative;display:inline-block}
 .toggle span::after{content:"";position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:var(--muted);transition:left .15s,background .15s}
 .toggle input:checked+span::after{left:16px;background:var(--brass)}
+.sel{display:flex;align-items:center;gap:8px}
+select{font-family:var(--body);font-size:15px;color:var(--bone);background:var(--ink-solid);border:1px solid var(--brass-dim);padding:3px 8px;border-radius:2px}
+select:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
 .note{font-size:14px;color:var(--muted);font-style:italic;margin:0}
 .orders{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;align-items:center;font-size:17px}
 .orders .k{display:flex;gap:4px;justify-content:flex-end}
@@ -105,10 +109,29 @@ h2.title{font-family:var(--display);font-weight:400;font-size:38px;margin:0;line
 .stats .v{text-align:right;font-weight:600}
 .stats .big{font-size:26px;color:var(--brass)}
 
+/* ---------- Era and ship pickers ---------- */
+.screen.pick{justify-content:center;align-items:flex-start;background:rgba(4,14,22,.9)}
+.screen.pick .card{margin:auto 0;max-width:min(1120px,94vw);gap:16px}
+.screen.pick .head{display:flex;flex-direction:column;gap:6px}
+.picks{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;width:100%}
+.pcard{font:inherit;color:var(--bone);text-align:left;background:var(--ink);border:1px solid var(--brass-dim);border-radius:2px;padding:14px 16px;cursor:pointer;display:flex;flex-direction:column;gap:7px;position:relative;transition:border-color .15s,background .15s}
+.pcard:hover,.pcard:focus-visible{border-color:var(--brass);background:rgba(18,40,56,.94)}
+.pcard:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
+.pcard .yr{font-family:var(--display);font-size:12px;letter-spacing:.14em;color:var(--brass);text-transform:uppercase}
+.pcard .pn{font-family:var(--display);font-size:25px;line-height:1.05}
+.pcard .pc{font-style:italic;color:var(--muted);font-size:15px}
+.pcard .pd{font-size:15.5px;line-height:1.35;color:#d9d1bf}
+.pcard .perk{font-size:14.5px;color:var(--green);line-height:1.3}
+.pcard .mt{display:grid;grid-template-columns:auto 1fr;gap:2px 14px;font-size:14px;color:var(--muted);margin-top:4px}
+.pcard .pips{letter-spacing:.2em;color:var(--brass)}
+.pcard .bst{position:absolute;top:12px;right:14px;font-size:13px;color:var(--muted)}
+.pcard .num{position:absolute;top:12px;right:14px}
+
 @media (max-width:760px){
-  #ship{width:200px;padding:10px 12px}
+  #ship{width:210px;padding:10px 12px}
+  #ship .name{font-size:21px}
   #compass{width:110px;height:110px}
-  .gauge{width:92px}
+  .gauge{width:100px}
   #guns{gap:10px;padding:8px 10px}
   #quick{display:none}
 }
@@ -124,15 +147,16 @@ h2.title{font-family:var(--display);font-weight:400;font-size:38px;margin:0;line
 
 <div id="hud" hidden>
   <section class="panel" id="ship" aria-label="Ship status">
-    <div class="eyebrow">36 guns · fifth rate</div>
-    <div class="name">HMS Resolute</div>
+    <div class="eyebrow" id="shipTag">36 guns · fifth rate</div>
+    <div class="name" id="shipName">HMS Resolute</div>
     <div class="row"><span class="lbl">Hull integrity</span><span id="hpNum">180 / 180</span></div>
     <div class="bar"><i id="hpBar" style="width:100%"></i></div>
     <div class="two">
-      <div><span class="lbl">Sail</span><b id="sailTxt">Battle sail</b></div>
+      <div><span class="lbl" id="sailLbl">Sail</span><b id="sailTxt">Battle sail</b></div>
       <div><span class="lbl">Speed</span><b id="spdTxt">0.0 kn</b></div>
     </div>
     <div id="posTxt">Beam reach</div>
+    <div id="threat" role="alert" hidden></div>
   </section>
 
   <section class="panel" id="tally" aria-label="Battle tally">
@@ -149,17 +173,17 @@ h2.title{font-family:var(--display);font-weight:400;font-size:38px;margin:0;line
 
   <section class="panel" id="guns" aria-label="Guns and repairs">
     <div class="gauge" id="gPort">
-      <div class="row"><span class="lbl"><kbd>Q</kbd> Port guns</span></div>
+      <div class="row"><span class="lbl"><kbd>Q</kbd> <span id="lblQ">Port guns</span></span></div>
       <div class="bar"><i></i></div>
       <div class="row"><b class="state">Ready</b></div>
     </div>
     <div class="gauge" id="gRep">
-      <div class="row"><span class="lbl"><kbd>R</kbd> Repair</span></div>
+      <div class="row"><span class="lbl"><kbd>R</kbd> <span id="lblR">Repair</span></span></div>
       <div class="bar"><i></i></div>
       <div class="row"><b class="state">Ready</b></div>
     </div>
     <div class="gauge" id="gStar">
-      <div class="row"><span class="lbl"><kbd>E</kbd> Starboard</span></div>
+      <div class="row"><span class="lbl"><kbd>E</kbd> <span id="lblE">Starboard</span></span></div>
       <div class="bar"><i></i></div>
       <div class="row"><b class="state">Ready</b></div>
     </div>
@@ -178,8 +202,8 @@ h2.title{font-family:var(--display);font-weight:400;font-size:38px;margin:0;line
 <!-- Main menu -->
 <div class="screen" id="menu">
   <div class="card">
-    <h1><em>Age of Sail, 1750–1815</em>Frigate Commander</h1>
-    <p class="lede">You command HMS Resolute, a 36-gun frigate of the Royal Navy. French warships are closing in waves. Turn to bring your guns to bear, fire the broadside, and keep her moving while the crews reload.</p>
+    <h1><em>1750 to the present day</em>Frigate Commander</h1>
+    <p class="lede">Take command of a warship and fight wave after wave of hostile ships. Choose an era, choose a ship, and learn what wind, steam and missiles do to the fight.</p>
     <div class="btns">
       <button class="btn primary" id="bStart" type="button">Start Game</button>
       <button class="btn" id="bControls" type="button">Controls</button>
@@ -187,8 +211,35 @@ h2.title{font-family:var(--display);font-weight:400;font-size:38px;margin:0;line
     <div class="toggles">
       <label class="toggle"><input type="checkbox" id="optSound" checked><span></span>Sound</label>
       <label class="toggle"><input type="checkbox" id="optMusic"><span></span>Music</label>
+      <label class="sel">Wind
+        <select id="optWind">
+          <option value="variable">Variable</option>
+          <option value="light">Light (6 kn)</option>
+          <option value="moderate">Moderate (13 kn)</option>
+          <option value="fresh">Fresh (20 kn)</option>
+          <option value="gale">Gale (29 kn)</option>
+        </select>
+      </label>
     </div>
     <p class="note" id="bestTxt">Needs a keyboard. Best played full screen in a desktop browser.</p>
+  </div>
+</div>
+
+<!-- Era picker -->
+<div class="screen pick" id="era" hidden>
+  <div class="card">
+    <div class="head"><div class="eyebrow">Step 1 of 2</div><h2 class="title">Choose your era</h2></div>
+    <div class="picks" id="eraPicks"></div>
+    <div class="btns"><button class="btn" id="bEraBack" type="button">Back</button></div>
+  </div>
+</div>
+
+<!-- Ship picker -->
+<div class="screen pick" id="ships" hidden>
+  <div class="card">
+    <div class="head"><div class="eyebrow" id="shipsEra">Step 2 of 2</div><h2 class="title">Choose your ship</h2></div>
+    <div class="picks" id="shipPicks"></div>
+    <div class="btns"><button class="btn" id="bShipsBack" type="button">Back</button></div>
   </div>
 </div>
 
@@ -196,23 +247,9 @@ h2.title{font-family:var(--display);font-weight:400;font-size:38px;margin:0;line
 <div class="screen" id="controls" hidden>
   <div class="card">
     <h2 class="title">Standing Orders</h2>
-    <div class="orders">
-      <span class="k"><kbd>W</kbd></span><span>Set more sail</span>
-      <span class="k"><kbd>S</kbd></span><span>Take in sail</span>
-      <span class="k"><kbd>A</kbd><kbd>D</kbd></span><span>Turn to port / starboard</span>
-      <span class="k"><kbd>Q</kbd></span><span>Fire the port broadside (left)</span>
-      <span class="k"><kbd>E</kbd></span><span>Fire the starboard broadside (right)</span>
-      <span class="k"><kbd>Space</kbd></span><span>Fire every loaded broadside</span>
-      <span class="k"><kbd>R</kbd></span><span>Repair the hull</span>
-      <span class="k"><kbd>Esc</kbd></span><span>Pause</span>
-      <span class="k"><kbd>F</kbd><kbd>M</kbd></span><span>Fullscreen · music</span>
-    </div>
-    <ul class="tips">
-      <li>Your guns fire sideways. Turn until the enemy sits inside the gold arc, then fire.</li>
-      <li>Sailing straight into the wind stalls the ship. She is fastest with the wind across her side.</li>
-      <li>A broadside takes 8 seconds to reload. Keep sailing so the enemy has to chase you.</li>
-      <li>Repairs take 6 seconds. The ship slows and the guns stay silent until they finish.</li>
-    </ul>
+    <p class="note" id="ctlFor"></p>
+    <div class="orders" id="orders"></div>
+    <ul class="tips" id="tips"></ul>
     <div class="btns"><button class="btn" id="bBack" type="button">Back</button></div>
   </div>
 </div>
@@ -233,7 +270,7 @@ h2.title{font-family:var(--display);font-weight:400;font-size:38px;margin:0;line
 <div class="screen center" id="over" hidden>
   <div class="card">
     <div class="eyebrow">Game over</div>
-    <h2 class="title">HMS Resolute has foundered</h2>
+    <h2 class="title" id="oTitle">HMS Resolute has foundered</h2>
     <div class="stats">
       <span class="lbl">Final score</span><span class="v big" id="oScore">0</span>
       <span class="lbl">Enemy ships sunk</span><span class="v" id="oSunk">0</span>
@@ -271,23 +308,204 @@ const toCompassDeg = a => ((a * 180 / Math.PI) + 90 + 720) % 360;
 const compassName = deg => POINTS16[Math.round(deg / 22.5) % 16];
 
 /* =========================================================
-   Ship classes
+   Eras, ship classes and the enemies that go with them
+
+   Game units: 1 world px ≈ 1 m of game scale, not real scale.
+   maxSpeed is px/s and kn is the knots it displays as at full speed.
+   Broadside is balanced at about a quarter of the ship's own hull
+   per volley, the same ratio the original frigate duel used.
    ========================================================= */
-const CLASSES = {
-  player:  { label:'Frigate', guns:36, hp:180, L:112, B:30, maxSpeed:100, turn:0.62, reload:8,   range:520, dmg:2.6, spread:0.050, masts:[0.25,0.0,-0.25], mastSize:[0.95,1.05,0.8], hull:'#24211d', band:'#d3a33a', deck:'#a7834f', flag:'GB' },
-  sloop:   { label:'Sloop',   guns:12, hp:60,  L:68,  B:19, maxSpeed:124, turn:1.00, reload:8,   range:420, dmg:2.2, spread:0.085, masts:[0.14,-0.16],     mastSize:[0.95,1.0],      hull:'#2b2825', band:'#7f9d8b', deck:'#a88a5c', flag:'FR', points:100 },
-  brig:    { label:'Brig',    guns:20, hp:100, L:86,  B:24, maxSpeed:108, turn:0.78, reload:8.5, range:470, dmg:2.3, spread:0.075, masts:[0.17,-0.14],     mastSize:[1.05,1.1],      hull:'#5b2420', band:'#d9cba4', deck:'#9f7f52', flag:'FR', points:200 },
-  frigate: { label:'Frigate', guns:36, hp:160, L:110, B:29, maxSpeed:98,  turn:0.60, reload:9,   range:520, dmg:2.3, spread:0.065, masts:[0.25,0.0,-0.25], mastSize:[0.95,1.05,0.8], hull:'#1b2b47', band:'#cfc7b1', deck:'#a2804f', flag:'FR', points:400 },
-};
-const SAILS = [
-  { name:'Furled',      v:0.00 },
-  { name:'Topsails',    v:0.35 },
-  { name:'Battle sail', v:0.65 },
-  { name:'Full sail',   v:1.00 },
+const ERAS = [
+  { id: 'sail',   name: 'Age of Sail',   years: '1750–1815',
+    blurb: 'Wood, canvas and iron round shot. Read the wind, turn to bring the broadside to bear, and keep her moving while the crews reload.',
+    ships: ['resolute'] },
+  { id: 'steam',  name: 'Steam & Steel', years: '1815–1945',
+    blurb: 'From the steam gunboat to the big-gun battleship. Steam frees you from the wind, armour and turrets change the fight, and every ship outranges the last.',
+    ships: ['gunboat', 'ironclad', 'predread', 'dread', 'battleship'] },
+  { id: 'modern', name: 'Missile Age',   years: '1980–today',
+    blurb: 'Radar, Aegis, anti-ship missiles and rapid-fire guns. Strike first at long range, and shoot down what comes back at you.',
+    ships: ['burke', 'zumwalt', 'ticonderoga', 'type45', 'sejong', 'type055'] },
 ];
-const BALL_SPEED = 560;
-const ARC = 0.33;               // half-width of a broadside's firing arc (radians, ~19°)
-const REPAIR_TIME = 6, REPAIR_RATE = 4, REPAIR_CD = 30;
+
+const ERA_DEF = {
+  sail:   { rig: 'sail',   mode: 'broadside', windDep: 1, kn: 10, acc: 11, dec: 15, slew: 0.45, turnAcc: 1.3, zoom: 1,    flash: 8,  shellSpeed: 560, arc: 0.33, flag: 'GB' },
+  steam:  { rig: 'steam',  mode: 'broadside', windDep: 0, kn: 10, acc: 12, dec: 16, slew: 0.35, turnAcc: 1.0, zoom: 1,    flash: 9,  shellSpeed: 600, arc: 0.38, flag: 'GB', eflag: 'OPFOR' },
+  modern: { rig: 'modern', mode: 'modern',    windDep: 0, kn: 30, acc: 20, dec: 26, slew: 0.55, turnAcc: 1.1, zoom: 0.62, flash: 7,  shellSpeed: 840, arc: 0.5,  flag: 'OPFOR' },
+};
+const ERA_PAL = {
+  steam:  { p: { hull: '#23272b', band: '#d8d0b8', deck: '#9a7b4c' }, e: { hull: '#2d1f1f', band: '#a8322a', deck: '#8a6e46' } },
+  modern: { p: { hull: '#6f7d85', band: '#4c585e', deck: '#8d999f' }, e: { hull: '#4a4545', band: '#a8372e', deck: '#625b5b' } },
+};
+const ERA_SEA = { sail: '#0d3651', steam: '#0e3650', modern: '#0b3045' };
+
+const CLASSES = {
+  /* ---------- Age of Sail, 1750 to 1815 ---------- */
+  resolute: { era: 'sail', playable: true, name: 'HMS Resolute', tag: '36 guns · fifth rate', label: 'Frigate',
+    guns: 36, hp: 180, L: 112, B: 30, maxSpeed: 100, turn: 0.62, reload: 8, range: 520, dmg: 2.6, spread: 0.050,
+    masts: [0.25, 0.0, -0.25], mastSize: [0.95, 1.05, 0.8], hull: '#24211d', band: '#d3a33a', deck: '#a7834f', flag: 'GB',
+    startLine: 'Beat to quarters. Enemy sails expected.', lost: 'HMS Resolute has foundered',
+    foes: { l: 'sloop', m: 'brig', h: 'frigate' }, waveScale: 1,
+    card: { year: '1750–1815', cls: '36-gun fifth-rate frigate, Royal Navy',
+      blurb: 'The ship the game began with. Eighteen guns a side, a fine sailer, and a hull that will not last long under a French broadside.',
+      perk: 'Wind is everything: sail across it, never into it.', stats: { speed: 3, guns: 3, hull: 3 } } },
+  sloop:   { era: 'sail', label: 'Sloop', plural: 'sloops', guns: 12, hp: 60, L: 68, B: 19, maxSpeed: 124, turn: 1.00, reload: 8, range: 420, dmg: 2.2, spread: 0.085,
+    masts: [0.14, -0.16], mastSize: [0.95, 1.0], hull: '#2b2825', band: '#7f9d8b', deck: '#a88a5c', flag: 'FR', points: 100 },
+  brig:    { era: 'sail', label: 'Brig', plural: 'brigs', guns: 20, hp: 100, L: 86, B: 24, maxSpeed: 108, turn: 0.78, reload: 8.5, range: 470, dmg: 2.3, spread: 0.075,
+    masts: [0.17, -0.14], mastSize: [1.05, 1.1], hull: '#5b2420', band: '#d9cba4', deck: '#9f7f52', flag: 'FR', points: 200 },
+  frigate: { era: 'sail', label: 'Frigate', plural: 'frigates', guns: 36, hp: 160, L: 110, B: 29, maxSpeed: 98, turn: 0.60, reload: 9, range: 520, dmg: 2.3, spread: 0.065,
+    masts: [0.25, 0.0, -0.25], mastSize: [0.95, 1.05, 0.8], hull: '#1b2b47', band: '#cfc7b1', deck: '#a2804f', flag: 'FR', points: 400 },
+
+  /* ---------- Steam and steel, 1815 to 1945 ---------- */
+  launch:  { era: 'steam', label: 'Armed launch', plural: 'armed launches', guns: 4, hp: 30, L: 46, B: 12, maxSpeed: 90, kn: 9, turn: 1.25, reload: 6, range: 430, dmg: 3.0, spread: 0.09, arc: 0.40, points: 50,
+    lay: { funnels: [0.0], deck: 'wood' } },
+  paddle:  { era: 'steam', label: 'Paddle gunvessel', plural: 'paddle gunvessels', guns: 6, hp: 60, L: 62, B: 17, maxSpeed: 95, kn: 9.5, turn: 0.95, reload: 7, range: 470, dmg: 5.0, spread: 0.08, arc: 0.40, points: 100,
+    lay: { funnels: [-0.04], masts: [0.26, -0.3], paddle: true, deck: 'wood' } },
+  gunboat: { era: 'steam', playable: true, name: 'HMS Staunch', tag: '8 guns · steam gunboat', label: 'Steam gunboat', plural: 'steam gunboats',
+    guns: 8, hp: 120, L: 78, B: 19, maxSpeed: 100, kn: 10, turn: 0.90, reload: 7.5, range: 520, dmg: 7.5, spread: 0.07, arc: 0.38, points: 250, zoom: 1.0,
+    lay: { funnels: [-0.05], masts: [0.28, -0.32], deck: 'wood' },
+    startLine: 'Steam up. Hostile gunvessels ahead.', lost: 'HMS Staunch has been sunk',
+    foes: { l: 'launch', m: 'paddle', h: 'gunboat' }, waveScale: 1,
+    card: { year: 'c. 1855', cls: 'Albacore-class gunboat, Royal Navy',
+      blurb: 'Small, cheap and handy. Steam lets you steer any course, but eight light guns mean you win by quick, close work.',
+      perk: 'Tightest turning circle in the steam fleet.', stats: { speed: 2, guns: 1, hull: 1 } } },
+  ironclad: { era: 'steam', playable: true, name: 'HMS Warrior', tag: '20 guns · armoured frigate', label: 'Ironclad', plural: 'ironclads',
+    guns: 20, hp: 300, L: 128, B: 28, maxSpeed: 140, kn: 14, turn: 0.55, reload: 9, range: 600, dmg: 7.5, spread: 0.06, arc: 0.42, points: 500, acc: 12, turnAcc: 0.95, zoom: 0.9,
+    lay: { funnels: [0.02], masts: [0.30, -0.02, -0.30], deck: 'wood' },
+    startLine: 'Iron hull, full steam. Open the range.', lost: 'HMS Warrior has been sunk',
+    foes: { l: 'paddle', m: 'gunboat', h: 'ironclad' }, waveScale: 0.95,
+    card: { year: 'c. 1860', cls: 'Armoured frigate, Royal Navy',
+      blurb: 'An iron-hulled broadside ship that made every wooden fleet obsolete. Twenty heavy guns on a hull that shrugs off shot that would sink a frigate.',
+      perk: 'Wind no longer matters. Full ahead is full ahead.', stats: { speed: 3, guns: 3, hull: 3 } } },
+  predread: { era: 'steam', playable: true, name: 'HMS Majestic', tag: '8 heavy guns · battleship', label: 'Pre-dreadnought', plural: 'pre-dreadnoughts',
+    guns: 8, hp: 480, L: 160, B: 34, maxSpeed: 170, kn: 17, turn: 0.46, reload: 10, range: 760, dmg: 30, spread: 0.05, arc: 0.62, shellSpeed: 700, points: 800,
+    autoLay: true, turrets: true, tpos: [0.30, 0.10, -0.14, -0.36], flash: 11, acc: 13, turnAcc: 0.9, zoom: 0.8,
+    lay: { funnels: [0.12, -0.12], masts: [0.22, -0.2], deck: 'steel' },
+    startLine: 'Heavy turrets trained. Range the enemy.', lost: 'HMS Majestic has been sunk',
+    foes: { l: 'gunboat', m: 'ironclad', h: 'predread' }, waveScale: 0.9,
+    card: { year: 'c. 1895', cls: 'Majestic-class battleship, Royal Navy',
+      blurb: 'Steel armour and turret-mounted 12-inch guns. Slow to turn, but each shell is a blow that smaller ships cannot absorb.',
+      perk: 'Turrets lay themselves on the nearest enemy inside the arc.', stats: { speed: 3, guns: 4, hull: 4 } } },
+  dread: { era: 'steam', playable: true, name: 'HMS Dreadnought', tag: '10 heavy guns · battleship', label: 'Dreadnought', plural: 'dreadnoughts',
+    guns: 10, hp: 700, L: 196, B: 38, maxSpeed: 210, kn: 21, turn: 0.40, reload: 11, range: 900, dmg: 35, spread: 0.045, arc: 0.80, shellSpeed: 760, points: 1100,
+    autoLay: true, turrets: true, tpos: [0.34, 0.22, -0.18, -0.28, -0.38], flash: 12, acc: 14, turnAcc: 0.85, zoom: 0.72,
+    lay: { funnels: [0.07, -0.07], masts: [0.14], deck: 'steel' },
+    startLine: 'All big guns. Open fire on the enemy line.', lost: 'HMS Dreadnought has been sunk',
+    foes: { l: 'ironclad', m: 'predread', h: 'dread' }, waveScale: 0.85,
+    card: { year: '1906', cls: 'Dreadnought-class battleship, Royal Navy',
+      blurb: 'The ship that ended the pre-dreadnought. Ten 12-inch guns, turbine speed and a firing arc wide enough to keep the enemy under fire while you turn.',
+      perk: 'Widest firing arc of the early turret ships.', stats: { speed: 4, guns: 5, hull: 4 } } },
+  battleship: { era: 'steam', playable: true, name: 'HMS Warspite', tag: '8 heavy guns · fast battleship', label: 'Battleship', plural: 'battleships',
+    guns: 8, hp: 950, L: 226, B: 42, maxSpeed: 240, kn: 24, turn: 0.36, reload: 12, range: 1000, dmg: 59, spread: 0.04, arc: 0.90, shellSpeed: 800, points: 1500,
+    autoLay: true, turrets: true, tpos: [0.34, 0.18, -0.22, -0.36], flash: 14, acc: 14, turnAcc: 0.8, zoom: 0.66,
+    lay: { funnels: [0.0], masts: [0.12], deck: 'steel' },
+    startLine: 'Eight 15-inch guns. Hold your fire to range.', lost: 'HMS Warspite has been sunk',
+    foes: { l: 'predread', m: 'dread', h: 'battleship' }, waveScale: 0.8,
+    card: { year: 'c. 1915–1945', cls: 'Queen Elizabeth-class fast battleship, Royal Navy',
+      blurb: 'Eight 15-inch guns at 24 knots. A huge hull that turns like a cathedral, and an enemy that has to cross a long killing zone to reach you.',
+      perk: 'Longest gun range and the toughest hull before the missile age.', stats: { speed: 5, guns: 5, hull: 5 } } },
+
+  /* ---------- Missile age, 1980 to today ---------- */
+  fac:      { era: 'modern', label: 'Missile boat', plural: 'missile boats', hp: 100, L: 70, B: 14, maxSpeed: 235, kn: 38, turn: 1.2, points: 150, stand: 460,
+    gun:     { mounts: [0.28], dmg: 5, burst: 3, reload: 3.0, range: 640, speed: 820, spread: 0.07 },
+    missile: { stock: 4, salvo: 2, reload: 26, range: 1500, speed: 470, dmg: 55, turn: 2.0 },
+    def:     { ciwsR: 0, ciwsL: 0, samR: 0, samL: 0, samCh: 0, stealth: 0 },
+    lay:     { sup: [-0.12, 0.06], vls: [[-0.30, -0.18]], vlsX: -0.22 } },
+  corvette: { era: 'modern', label: 'Corvette', plural: 'corvettes', hp: 260, L: 112, B: 17, maxSpeed: 175, kn: 28, turn: 0.85, points: 400, stand: 640,
+    gun:     { mounts: [0.30], dmg: 8, burst: 3, reload: 2.6, range: 820, speed: 840, spread: 0.06 },
+    missile: { stock: 6, salvo: 2, reload: 24, range: 1700, speed: 460, dmg: 60, turn: 1.9 },
+    def:     { ciwsR: 230, ciwsL: 1.2, samR: 0, samL: 0, samCh: 0, stealth: 0 },
+    lay:     { sup: [-0.14, 0.08], vls: [[-0.34, -0.22]], vlsX: -0.28, ciws: [0.10], heli: -0.40 } },
+  destroyer:{ era: 'modern', label: 'Destroyer', plural: 'destroyers', hp: 480, L: 168, B: 22, maxSpeed: 185, kn: 30, turn: 0.62, points: 800, stand: 780,
+    gun:     { mounts: [0.30], dmg: 10, burst: 3, reload: 2.4, range: 920, speed: 850, spread: 0.055 },
+    missile: { stock: 8, salvo: 2, reload: 22, range: 1900, speed: 470, dmg: 62, turn: 1.9 },
+    def:     { ciwsR: 240, ciwsL: 1.3, samR: 900, samL: 0.55, samCh: 1, stealth: 0 },
+    lay:     { sup: [-0.06, 0.12], vls: [[0.18, 0.27], [-0.32, -0.20]], vlsX: -0.26, ciws: [0.08, -0.30], fun: [-0.12, -0.18], heli: -0.40 } },
+
+  burke: { era: 'modern', playable: true, name: 'USS Arleigh Burke', tag: 'DDG-51 · Aegis destroyer', label: 'Destroyer',
+    hp: 560, L: 170, B: 22, maxSpeed: 190, kn: 31, turn: 0.62, flag: 'US',
+    gun:     { mounts: [0.30], dmg: 11, burst: 3, reload: 2.2, range: 900, speed: 850, spread: 0.050 },
+    missile: { stock: 8, salvo: 2, reload: 20, range: 2000, speed: 480, dmg: 62, turn: 2.0 },
+    def:     { ciwsR: 240, ciwsL: 1.5, samR: 1000, samL: 0.70, samCh: 2, stealth: 0 },
+    lay:     { sup: [-0.06, 0.12], vls: [[0.18, 0.27], [-0.32, -0.20]], vlsX: -0.26, ciws: [0.08, -0.30], fun: [-0.12, -0.18], heli: -0.40 },
+    startLine: 'General quarters. Radar contacts closing.', lost: 'USS Arleigh Burke has been lost',
+    foes: { l: 'fac', m: 'corvette', h: 'destroyer' }, waveScale: 0.6,
+    card: { year: '1991–today', cls: 'Arleigh Burke-class guided-missile destroyer, US Navy',
+      blurb: 'The balanced all-rounder: a 5-inch gun, eight anti-ship missiles and Aegis air defence with SM-2 interceptors and Phalanx.',
+      perk: 'Layered defence: SM-2 at long range, Phalanx close in.', stats: { speed: 4, guns: 3, missiles: 3, air: 4, hull: 3 } } },
+  zumwalt: { era: 'modern', playable: true, name: 'USS Zumwalt', tag: 'DDG-1000 · stealth destroyer', label: 'Destroyer',
+    hp: 640, L: 186, B: 26, maxSpeed: 182, kn: 30, turn: 0.52, flag: 'US',
+    gun:     { mounts: [0.34, 0.20], dmg: 22, burst: 1, reload: 3.0, range: 1200, speed: 900, spread: 0.035 },
+    missile: { stock: 6, salvo: 2, reload: 22, range: 2100, speed: 480, dmg: 66, turn: 2.0 },
+    def:     { ciwsR: 0, ciwsL: 0, samR: 800, samL: 0.60, samCh: 2, stealth: 0.45 },
+    lay:     { sup: [-0.14, 0.08], supW: 0.34, facets: true, vls: [[0.0, 0.12], [-0.30, -0.20]], vlsX: -0.05, heli: -0.38 },
+    startLine: 'Stealth hull, guns trained. Hold the long range.', lost: 'USS Zumwalt has been lost',
+    foes: { l: 'fac', m: 'corvette', h: 'destroyer' }, waveScale: 0.6,
+    card: { year: '2016–today', cls: 'Zumwalt-class stealth destroyer, US Navy',
+      blurb: 'A wave-piercing stealth hull and two 155 mm Advanced Gun Systems that outrange everything afloat. Little close-in defence beyond ESSM.',
+      perk: 'Low radar signature: 45% of incoming missiles lose their lock.', stats: { speed: 3, guns: 5, missiles: 3, air: 2, hull: 5 } } },
+  ticonderoga: { era: 'modern', playable: true, name: 'USS Ticonderoga', tag: 'CG-47 · Aegis cruiser', label: 'Cruiser',
+    hp: 600, L: 172, B: 24, maxSpeed: 195, kn: 32, turn: 0.58, flag: 'US',
+    gun:     { mounts: [0.34, -0.31], dmg: 10, burst: 3, reload: 3.0, range: 900, speed: 850, spread: 0.050 },
+    missile: { stock: 8, salvo: 2, reload: 20, range: 2000, speed: 480, dmg: 62, turn: 2.0 },
+    def:     { ciwsR: 240, ciwsL: 1.5, samR: 1100, samL: 0.85, samCh: 3, stealth: 0 },
+    lay:     { sup: [-0.08, 0.12], vls: [[0.19, 0.28], [-0.24, -0.15]], vlsX: -0.20, ciws: [0.10, -0.36], fun: [-0.12, -0.17], heli: -0.42 },
+    startLine: 'Aegis tracking. Air picture is yours.', lost: 'USS Ticonderoga has been lost',
+    foes: { l: 'fac', m: 'corvette', h: 'destroyer' }, waveScale: 0.65,
+    card: { year: '1983–today', cls: 'Ticonderoga-class guided-missile cruiser, US Navy',
+      blurb: 'Two 5-inch guns and the heaviest air defence in the fleet. SPY-1 radar and SM-2 missiles can swat down a big salvo.',
+      perk: 'Three simultaneous SAM engagements.', stats: { speed: 4, guns: 4, missiles: 3, air: 5, hull: 4 } } },
+  type45: { era: 'modern', playable: true, name: 'HMS Daring', tag: 'Type 45 · air-defence destroyer', label: 'Destroyer',
+    hp: 480, L: 152, B: 21, maxSpeed: 180, kn: 29, turn: 0.66, flag: 'UK',
+    gun:     { mounts: [0.30], dmg: 11, burst: 3, reload: 2.6, range: 880, speed: 840, spread: 0.050 },
+    missile: { stock: 8, salvo: 2, reload: 20, range: 1900, speed: 470, dmg: 60, turn: 2.0 },
+    def:     { ciwsR: 230, ciwsL: 1.4, samR: 1100, samL: 0.95, samCh: 3, stealth: 0 },
+    lay:     { sup: [-0.04, 0.12], vls: [[0.18, 0.27]], vlsX: -0.04, ciws: [0.10, -0.30], fun: [-0.14, -0.20], heli: -0.38 },
+    startLine: 'Sea Viper ready. Contacts on the plot.', lost: 'HMS Daring has been lost',
+    foes: { l: 'fac', m: 'corvette', h: 'destroyer' }, waveScale: 0.55,
+    card: { year: '2009–today', cls: 'Type 45 (Daring-class) destroyer, Royal Navy',
+      blurb: 'Built to kill aircraft and missiles. Lightly armed for a destroyer and thin-skinned, but nothing in the game protects its flock better.',
+      perk: 'Sea Viper: highest SAM kill rate, three channels.', stats: { speed: 4, guns: 2, missiles: 3, air: 5, hull: 2 } } },
+  sejong: { era: 'modern', playable: true, name: 'ROKS Sejong the Great', tag: 'DDG-991 · Aegis destroyer', label: 'Destroyer',
+    hp: 560, L: 166, B: 21, maxSpeed: 186, kn: 30, turn: 0.62, flag: 'ROK',
+    gun:     { mounts: [0.31], dmg: 11, burst: 3, reload: 2.3, range: 900, speed: 850, spread: 0.050 },
+    missile: { stock: 12, salvo: 2, reload: 20, range: 2100, speed: 480, dmg: 60, turn: 2.0 },
+    def:     { ciwsR: 240, ciwsL: 1.4, samR: 1000, samL: 0.70, samCh: 2, stealth: 0 },
+    lay:     { sup: [-0.06, 0.12], vls: [[0.17, 0.27], [-0.32, -0.20]], vlsX: -0.26, ciws: [0.08, -0.30], fun: [-0.12, -0.18], heli: -0.40 },
+    startLine: 'Aegis online. Hostile surface group inbound.', lost: 'ROKS Sejong the Great has been lost',
+    foes: { l: 'fac', m: 'corvette', h: 'destroyer' }, waveScale: 0.6,
+    card: { year: '2008–today', cls: 'Sejong the Great-class destroyer, Republic of Korea Navy',
+      blurb: 'One of the most heavily armed destroyers afloat. A deep anti-ship magazine and a full Aegis suite make it the best at opening a fight from range.',
+      perk: 'Largest missile magazine: twelve rounds.', stats: { speed: 4, guns: 3, missiles: 5, air: 4, hull: 3 } } },
+  type055: { era: 'modern', playable: true, name: 'PLAN Nanchang', tag: 'Type 055 · large destroyer', label: 'Destroyer',
+    hp: 640, L: 180, B: 23, maxSpeed: 186, kn: 30, turn: 0.58, flag: 'PRC',
+    gun:     { mounts: [0.31], dmg: 12, burst: 3, reload: 2.6, range: 950, speed: 860, spread: 0.050 },
+    missile: { stock: 8, salvo: 2, reload: 21, range: 2200, speed: 640, dmg: 70, turn: 1.8 },
+    def:     { ciwsR: 240, ciwsL: 1.5, samR: 1000, samL: 0.70, samCh: 2, stealth: 0 },
+    lay:     { sup: [-0.08, 0.12], supW: 0.32, vls: [[0.17, 0.27], [-0.32, -0.20]], vlsX: -0.26, ciws: [0.06, -0.30], fun: [-0.14, -0.20], heli: -0.40 },
+    startLine: 'Weapons free. Open the engagement.', lost: 'PLAN Nanchang has been lost',
+    foes: { l: 'fac', m: 'corvette', h: 'destroyer' }, waveScale: 0.65,
+    card: { year: '2020–today', cls: 'Type 055 (Renhai-class) destroyer, PLA Navy',
+      blurb: 'The largest hull of the group, with a 130 mm gun and a fast supersonic anti-ship missile that spends little time in a defender’s range.',
+      perk: 'Much faster missiles: far fewer get shot down.', stats: { speed: 4, guns: 4, missiles: 4, air: 3, hull: 5 } } },
+};
+for (const k of Object.keys(CLASSES)) {
+  const c = CLASSES[k] = Object.assign({}, ERA_DEF[CLASSES[k].era], CLASSES[k]);
+  c.key = k;
+  if (c.mode === 'broadside') {
+    const n = c.guns / 2;
+    c.bpos = c.tpos ? c.tpos.map(f => f * c.L) : Array.from({ length: n }, (_, i) => lerp(c.L * 0.30, -c.L * 0.36, n > 1 ? i / (n - 1) : 0.5));
+  } else {
+    c.range = c.gun.range;
+    c.guns = 0;
+  }
+}
+
+const THROTTLES = {
+  sail:   [{ name: 'Furled', v: 0 }, { name: 'Topsails', v: 0.35 }, { name: 'Battle sail', v: 0.65 }, { name: 'Full sail', v: 1 }],
+  steam:  [{ name: 'All stop', v: 0 }, { name: 'Half ahead', v: 0.40 }, { name: 'Full ahead', v: 0.70 }, { name: 'Flank speed', v: 1 }],
+  modern: [{ name: 'All stop', v: 0 }, { name: 'Slow ahead', v: 0.35 }, { name: 'Full ahead', v: 0.65 }, { name: 'Flank speed', v: 1 }],
+};
+const REPAIR_TIME = 6, REPAIR_CD = 30;
 
 /* Point-of-sail efficiency: angle off the wind (deg) -> fraction of best speed */
 const POS_TABLE = [[0,0.10],[30,0.16],[45,0.55],[60,0.80],[90,0.97],[115,1.00],[150,0.90],[180,0.80]];
@@ -307,17 +525,20 @@ function pointOfSailName(offDeg) {
   if (offDeg < 155) return 'Broad reach';
   return 'Running before the wind';
 }
+const WIND_NAMES = [[1, 'Calm'], [4, 'Light air'], [7, 'Light breeze'], [11, 'Gentle breeze'], [17, 'Moderate breeze'], [22, 'Fresh breeze'], [28, 'Strong breeze'], [34, 'Gale']];
+function windName(kn) { let n = 'Calm'; for (const [t, s] of WIND_NAMES) if (kn >= t) n = s; return kn >= 28 ? 'Gale' : n; }
 
 /* =========================================================
    Canvas setup
    ========================================================= */
 const cvs = $('game'), ctx = cvs.getContext('2d');
-let W = 0, H = 0, DPR = 1, ZOOM = 1, vignette = null;
+let W = 0, H = 0, DPR = 1, ZOOM = 1, zoomMul = 1, vignette = null;
+function applyZoom() { ZOOM = clamp(Math.min(W, H) / 740, 0.6, 1.25) * zoomMul; }
 function resize() {
   DPR = Math.min(1.5, window.devicePixelRatio || 1);
   W = window.innerWidth; H = window.innerHeight;
   cvs.width = Math.round(W * DPR); cvs.height = Math.round(H * DPR);
-  ZOOM = clamp(Math.min(W, H) / 740, 0.6, 1.25);
+  applyZoom();
   vignette = document.createElement('canvas');
   vignette.width = 256; vignette.height = 256;
   const g = vignette.getContext('2d');
@@ -364,7 +585,7 @@ const patCrestB = ctx.createPattern(waveTile(TILE_A, 80, '#79b6d4', 23, 10, 34),
 const patTrough = ctx.createPattern(waveTile(TILE_B, 70, '#06253a', 37, 14, 44), 'repeat');
 const patSwell  = ctx.createPattern(swellTile(TILE_S, 51), 'repeat');
 
-/* ---------- Ship sprites (hull, deck, guns, rigging bases) ---------- */
+/* ---------- Ship sprites (hull, deck, guns, fittings) ---------- */
 function hullPath(g, L, B) {
   g.beginPath();
   g.moveTo(L * 0.5, 0);
@@ -377,26 +598,61 @@ function hullPath(g, L, B) {
   g.bezierCurveTo(L * 0.30, B * 0.5, L * 0.44, B * 0.38, L * 0.5, 0);
   g.closePath();
 }
+// Long, narrow hull with a sharp bow and a transom stern, for steel ships.
+function hullPathSleek(g, L, B) {
+  g.beginPath();
+  g.moveTo(L * 0.5, 0);
+  g.bezierCurveTo(L * 0.40, -B * 0.12, L * 0.30, -B * 0.5, L * 0.14, -B * 0.5);
+  g.lineTo(-L * 0.46, -B * 0.5);
+  g.lineTo(-L * 0.5, -B * 0.42);
+  g.lineTo(-L * 0.5, B * 0.42);
+  g.lineTo(-L * 0.46, B * 0.5);
+  g.lineTo(L * 0.14, B * 0.5);
+  g.bezierCurveTo(L * 0.30, B * 0.5, L * 0.40, B * 0.12, L * 0.5, 0);
+  g.closePath();
+}
+function paintHull(g, pal, L, B, path, deckKind) {
+  path(g, L, B); g.fillStyle = pal.hull; g.fill();
+  g.lineWidth = 0.8; g.strokeStyle = 'rgba(0,0,0,0.7)'; g.stroke();
+  g.save(); g.scale(0.955, 0.86); path(g, L, B); g.fillStyle = pal.band; g.fill(); g.restore();
+  g.save(); g.scale(0.935, 0.76); path(g, L, B); g.fillStyle = pal.hull; g.fill(); g.restore();
+  g.save(); g.scale(0.91, 0.70); path(g, L, B); g.fillStyle = deckKind === 'steel' ? '#6d767b' : pal.deck; g.fill(); g.clip();
+  if (deckKind === 'steel') {
+    g.strokeStyle = 'rgba(15,22,26,0.28)'; g.lineWidth = 0.35;
+    for (let x = -L / 2; x < L / 2; x += 6) { g.beginPath(); g.moveTo(x, -B / 2); g.lineTo(x, B / 2); g.stroke(); }
+  } else if (deckKind !== 'plain') {
+    g.strokeStyle = 'rgba(70,45,20,0.30)'; g.lineWidth = 0.35;
+    for (let y = -B / 2; y < B / 2; y += 2.6) { g.beginPath(); g.moveTo(-L / 2, y); g.lineTo(L / 2, y); g.stroke(); }
+  }
+  g.restore();
+}
+function spritePalette(c, enemy) {
+  if (c.era === 'sail') return { hull: c.hull, band: c.band, deck: c.deck };
+  return ERA_PAL[c.era][enemy ? 'e' : 'p'];
+}
 const SPRITES = {};
-function buildSprite(key) {
-  const c = CLASSES[key], L = c.L, B = c.B, S = 2, pad = 8, bs = L * 0.18;
-  const w = L + bs + pad * 2, h = B + pad * 2;
+function getSprite(s) {
+  const key = s.kind + (s.isPlayer ? '' : ':e');
+  return SPRITES[key] || buildSprite(s.kind, !s.isPlayer, key);
+}
+function buildSprite(kind, enemy, key) {
+  const c = CLASSES[kind], L = c.L, B = c.B, S = 2, pad = 8;
+  const bs = c.rig === 'sail' ? L * 0.18 : c.rig === 'steam' ? L * 0.05 : 0;
+  const pal = spritePalette(c, enemy);
+  const w = L + bs + pad * 2, h = B * (c.lay && c.lay.paddle ? 1.5 : 1) + pad * 2;
   const cv = document.createElement('canvas'); cv.width = Math.ceil(w * S); cv.height = Math.ceil(h * S);
   const g = cv.getContext('2d'); g.scale(S, S); g.translate(pad + L / 2, h / 2);
+  if (c.rig === 'sail') paintSailSprite(g, c, pal, L, B, bs);
+  else if (c.rig === 'steam') paintSteamSprite(g, c, pal, L, B, bs);
+  else paintModernSprite(g, c, pal, L, B);
+  return (SPRITES[key] = { cv, ox: pad + L / 2, oy: h / 2, w, h });
+}
+function paintSailSprite(g, c, pal, L, B, bs) {
   // bowsprit and jib-boom
   g.strokeStyle = '#3a2817'; g.lineCap = 'round';
   g.lineWidth = 2.2; g.beginPath(); g.moveTo(L * 0.42, 0); g.lineTo(L * 0.5 + bs * 0.7, 0); g.stroke();
   g.lineWidth = 1.1; g.beginPath(); g.lineTo(L * 0.5 + bs * 0.6, 0); g.lineTo(L * 0.5 + bs, 0); g.stroke();
-  // hull
-  hullPath(g, L, B); g.fillStyle = c.hull; g.fill();
-  g.lineWidth = 0.8; g.strokeStyle = 'rgba(0,0,0,0.7)'; g.stroke();
-  g.save(); g.scale(0.955, 0.86); hullPath(g, L, B); g.fillStyle = c.band; g.fill(); g.restore();
-  g.save(); g.scale(0.935, 0.76); hullPath(g, L, B); g.fillStyle = c.hull; g.fill(); g.restore();
-  // deck with planking
-  g.save(); g.scale(0.91, 0.70); hullPath(g, L, B); g.fillStyle = c.deck; g.fill(); g.clip();
-  g.strokeStyle = 'rgba(70,45,20,0.30)'; g.lineWidth = 0.35;
-  for (let y = -B / 2; y < B / 2; y += 2.6) { g.beginPath(); g.moveTo(-L / 2, y); g.lineTo(L / 2, y); g.stroke(); }
-  g.restore();
+  paintHull(g, pal, L, B, hullPath, 'wood');
   // gun ports and barrels on the band
   const n = c.guns / 2;
   for (const side of [-1, 1]) {
@@ -433,9 +689,108 @@ function buildSprite(key) {
     }
   }
   for (const m of c.masts) { g.fillStyle = '#2a1a0c'; g.beginPath(); g.arc(L * m, 0, 1.7, 0, TAU); g.fill(); }
-  SPRITES[key] = { cv, ox: pad + L / 2, oy: h / 2, w, h };
 }
-for (const k of Object.keys(CLASSES)) buildSprite(k);
+function paintSteamSprite(g, c, pal, L, B, bs) {
+  const lay = c.lay;
+  // jib-boom
+  g.strokeStyle = '#2a1d10'; g.lineCap = 'round'; g.lineWidth = 1.4;
+  g.beginPath(); g.moveTo(L * 0.44, 0); g.lineTo(L * 0.5 + bs, 0); g.stroke();
+  // paddle boxes sit outside the hull
+  if (lay.paddle) {
+    for (const side of [-1, 1]) {
+      const y0 = side > 0 ? B * 0.46 : -B * 0.46 - B * 0.24;
+      g.fillStyle = '#4a3a26'; g.fillRect(-L * 0.06, y0, L * 0.2, B * 0.24);
+      g.strokeStyle = 'rgba(0,0,0,0.55)'; g.lineWidth = 0.5; g.strokeRect(-L * 0.06, y0, L * 0.2, B * 0.24);
+      g.strokeStyle = 'rgba(214,190,140,0.4)'; g.lineWidth = 0.4;
+      for (let k = 1; k < 4; k++) { const x = -L * 0.06 + k * L * 0.05; g.beginPath(); g.moveTo(x, y0); g.lineTo(x, y0 + B * 0.24); g.stroke(); }
+    }
+  }
+  paintHull(g, pal, L, B, hullPath, lay.deck);
+  // gun ports for broadside ships
+  if (!c.turrets) {
+    const n = c.guns / 2;
+    for (const side of [-1, 1]) for (let i = 0; i < n; i++) {
+      const x = lerp(L * 0.30, -L * 0.36, n > 1 ? i / (n - 1) : 0.5);
+      g.fillStyle = '#120c07'; g.fillRect(x - 1.05, side * B * 0.405 - 0.85, 2.1, 1.7);
+    }
+  } else {
+    // turret rings (the barrels are drawn live so they can train)
+    for (const f of c.tpos) {
+      g.fillStyle = '#394046'; g.beginPath(); g.arc(L * f, 0, B * 0.21, 0, TAU); g.fill();
+      g.strokeStyle = 'rgba(0,0,0,0.6)'; g.lineWidth = 0.6; g.stroke();
+    }
+  }
+  // bridge / conning tower
+  g.fillStyle = 'rgba(30,26,22,0.8)';
+  g.fillRect(L * (c.turrets ? 0.20 : 0.15), -B * 0.12, L * 0.045, B * 0.24);
+  // masts: bare spars with a yard across
+  for (const m of lay.masts || []) {
+    g.strokeStyle = 'rgba(30,18,8,0.8)'; g.lineWidth = 0.8;
+    g.beginPath(); g.moveTo(L * m, -B * 0.4); g.lineTo(L * m, B * 0.4); g.stroke();
+    g.fillStyle = '#2a1a0c'; g.beginPath(); g.arc(L * m, 0, c.turrets ? 2.4 : 1.7, 0, TAU); g.fill();
+  }
+  // funnels
+  for (const f of lay.funnels || []) {
+    const r = Math.max(2.2, B * 0.15);
+    g.fillStyle = '#1b1b1b'; g.beginPath(); g.arc(L * f, 0, r, 0, TAU); g.fill();
+    g.strokeStyle = c.turrets ? '#6a6f73' : '#8a7448'; g.lineWidth = 0.9; g.stroke();
+  }
+  // stern ensign staff
+  g.strokeStyle = 'rgba(30,18,8,0.7)'; g.lineWidth = 1.2;
+  g.beginPath(); g.moveTo(-L * 0.4, -B * 0.06); g.lineTo(-L * 0.4, B * 0.06); g.stroke();
+}
+function paintModernSprite(g, c, pal, L, B) {
+  const lay = c.lay;
+  paintHull(g, pal, L, B, hullPathSleek, 'plain');
+  // vertical launch cells and missile canisters
+  for (const [a, b] of lay.vls || []) {
+    const x0 = L * Math.min(a, b), w = L * Math.abs(b - a), h = B * 0.36;
+    g.fillStyle = '#2b3135'; g.fillRect(x0, -h / 2, w, h);
+    g.strokeStyle = 'rgba(170,182,188,0.45)'; g.lineWidth = 0.3;
+    for (let x = x0; x <= x0 + w + 0.01; x += 2.2) { g.beginPath(); g.moveTo(x, -h / 2); g.lineTo(x, h / 2); g.stroke(); }
+    for (let k = 0; k <= 4; k++) { const y = -h / 2 + k * h / 4; g.beginPath(); g.moveTo(x0, y); g.lineTo(x0 + w, y); g.stroke(); }
+  }
+  // superstructure: slab-sided, or faceted for the stealth hull
+  if (lay.sup) {
+    const x0 = L * lay.sup[0], x1 = L * lay.sup[1], hw = B * (lay.supW || 0.30), dx = (x1 - x0) * 0.2;
+    g.beginPath();
+    if (lay.facets) {
+      g.moveTo(x1, -hw * 0.45); g.lineTo(x1 - dx, -hw); g.lineTo(x0 + dx, -hw); g.lineTo(x0, -hw * 0.5);
+      g.lineTo(x0, hw * 0.5); g.lineTo(x0 + dx, hw); g.lineTo(x1 - dx, hw); g.lineTo(x1, hw * 0.45);
+    } else {
+      g.moveTo(x1, -hw * 0.7); g.lineTo(x1 - 2, -hw); g.lineTo(x0 + 2, -hw); g.lineTo(x0, -hw * 0.7);
+      g.lineTo(x0, hw * 0.7); g.lineTo(x0 + 2, hw); g.lineTo(x1 - 2, hw); g.lineTo(x1, hw * 0.7);
+    }
+    g.closePath(); g.fillStyle = '#a9b4ba'; g.fill();
+    g.strokeStyle = 'rgba(20,28,32,0.7)'; g.lineWidth = 0.6; g.stroke();
+    g.fillStyle = '#c4ccd1'; g.fillRect(x0 + (x1 - x0) * 0.2, -hw * 0.55, (x1 - x0) * 0.55, hw * 1.1);
+    g.fillStyle = '#2b3237'; g.beginPath(); g.arc((x0 + x1) / 2, 0, Math.max(1.4, B * 0.07), 0, TAU); g.fill();
+  }
+  // exhaust uptakes
+  for (const f of lay.fun || []) {
+    g.fillStyle = '#3a4146';
+    g.fillRect(L * f - 2.2, -B * 0.14 - 1.2, 4.4, 2.4); g.fillRect(L * f - 2.2, B * 0.14 - 1.2, 4.4, 2.4);
+  }
+  // helicopter deck
+  if (lay.heli != null) {
+    const hx = L * lay.heli, r = B * 0.30;
+    g.fillStyle = 'rgba(38,46,50,0.6)'; g.beginPath(); g.arc(hx, 0, r, 0, TAU); g.fill();
+    g.strokeStyle = 'rgba(232,226,200,0.8)'; g.lineWidth = 0.6; g.stroke();
+    g.beginPath(); g.moveTo(hx - r * 0.35, -r * 0.4); g.lineTo(hx - r * 0.35, r * 0.4);
+    g.moveTo(hx + r * 0.35, -r * 0.4); g.lineTo(hx + r * 0.35, r * 0.4);
+    g.moveTo(hx - r * 0.35, 0); g.lineTo(hx + r * 0.35, 0); g.stroke();
+  }
+  // close-in weapon system mounts
+  for (const f of lay.ciws || []) {
+    g.fillStyle = '#d9dfe2'; g.beginPath(); g.arc(L * f, 0, 2.1, 0, TAU); g.fill();
+    g.strokeStyle = 'rgba(20,28,32,0.8)'; g.lineWidth = 0.5; g.stroke();
+  }
+  // tumblehome lines on the stealth hull
+  if (lay.facets) {
+    g.strokeStyle = 'rgba(210,220,225,0.35)'; g.lineWidth = 0.4;
+    for (const side of [-1, 1]) { g.beginPath(); g.moveTo(L * 0.30, side * B * 0.30); g.lineTo(-L * 0.42, side * B * 0.38); g.stroke(); }
+  }
+}
 
 /* =========================================================
    Sound (synthesised with WebAudio; no files)
@@ -472,17 +827,61 @@ const Snd = {
   },
   track(node, t) { this.voices++; node.onended = () => { this.voices--; }; node.stop(t); },
   noiseSrc(rate) { const s = this.ctx.createBufferSource(); s.buffer = this.noise; s.playbackRate.value = rate || 1; return s; },
-  cannon(vol, pan) {
+  // big: 0 for a frigate's 12-pounder up to 1 for a battleship's main battery
+  cannon(vol, pan, big) {
     if (!this.ok('cannon', 0.012)) return;
+    big = big || 0;
     const c = this.ctx, t = c.currentTime, out = this.out(pan);
-    const n = this.noiseSrc(rand(0.6, 0.85)), lp = c.createBiquadFilter(), g = c.createGain();
-    lp.type = 'lowpass'; lp.frequency.setValueAtTime(2200, t); lp.frequency.exponentialRampToValueAtTime(120, t + 0.8);
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0008, t + 1.2);
-    n.connect(lp); lp.connect(g); g.connect(out); n.start(t, Math.random()); this.track(n, t + 1.25);
+    const n = this.noiseSrc(rand(0.6, 0.85) * (1 - 0.4 * big)), lp = c.createBiquadFilter(), g = c.createGain();
+    lp.type = 'lowpass'; lp.frequency.setValueAtTime(2200 - 900 * big, t); lp.frequency.exponentialRampToValueAtTime(110, t + 0.8 + big * 0.5);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol * (1 + 0.5 * big), t + 0.006); g.gain.exponentialRampToValueAtTime(0.0008, t + 1.2 + big * 0.6);
+    n.connect(lp); lp.connect(g); g.connect(out); n.start(t, Math.random()); this.track(n, t + 1.25 + big * 0.6);
     const o = c.createOscillator(), og = c.createGain();
-    o.type = 'sine'; o.frequency.setValueAtTime(rand(80, 105), t); o.frequency.exponentialRampToValueAtTime(30, t + 0.5);
-    og.gain.setValueAtTime(vol * 1.5, t); og.gain.exponentialRampToValueAtTime(0.0008, t + 0.6);
-    o.connect(og); og.connect(out); o.start(t); this.track(o, t + 0.65);
+    o.type = 'sine'; o.frequency.setValueAtTime(rand(80, 105) * (1 - 0.4 * big), t); o.frequency.exponentialRampToValueAtTime(28, t + 0.5 + big * 0.3);
+    og.gain.setValueAtTime(vol * 1.5, t); og.gain.exponentialRampToValueAtTime(0.0008, t + 0.6 + big * 0.3);
+    o.connect(og); og.connect(out); o.start(t); this.track(o, t + 0.65 + big * 0.3);
+  },
+  // quick-firing naval gun: a sharp crack rather than a boom
+  crack(vol, pan) {
+    if (!this.ok('crack', 0.03)) return;
+    const c = this.ctx, t = c.currentTime, out = this.out(pan);
+    const n = this.noiseSrc(rand(1.1, 1.4)), bp = c.createBiquadFilter(), g = c.createGain();
+    bp.type = 'bandpass'; bp.frequency.setValueAtTime(1800, t); bp.frequency.exponentialRampToValueAtTime(400, t + 0.3); bp.Q.value = 0.7;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0008, t + 0.34);
+    n.connect(bp); bp.connect(g); g.connect(out); n.start(t, Math.random()); this.track(n, t + 0.38);
+    const o = c.createOscillator(), og = c.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.18);
+    og.gain.setValueAtTime(vol * 0.9, t); og.gain.exponentialRampToValueAtTime(0.0008, t + 0.22);
+    o.connect(og); og.connect(out); o.start(t); this.track(o, t + 0.25);
+  },
+  missile(vol, pan) {
+    if (!this.ok('missile', 0.1)) return;
+    const c = this.ctx, t = c.currentTime, out = this.out(pan);
+    const n = this.noiseSrc(1.2), bp = c.createBiquadFilter(), g = c.createGain();
+    bp.type = 'bandpass'; bp.frequency.setValueAtTime(450, t); bp.frequency.exponentialRampToValueAtTime(3200, t + 1.0); bp.Q.value = 0.8;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.08); g.gain.exponentialRampToValueAtTime(0.0008, t + 1.15);
+    n.connect(bp); bp.connect(g); g.connect(out); n.start(t, Math.random()); this.track(n, t + 1.2);
+  },
+  boom(vol, pan) {
+    if (!this.ok('boom', 0.05)) return;
+    const c = this.ctx, t = c.currentTime, out = this.out(pan);
+    const n = this.noiseSrc(0.55), lp = c.createBiquadFilter(), g = c.createGain();
+    lp.type = 'lowpass'; lp.frequency.setValueAtTime(2000, t); lp.frequency.exponentialRampToValueAtTime(80, t + 0.9);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0008, t + 1.0);
+    n.connect(lp); lp.connect(g); g.connect(out); n.start(t, Math.random()); this.track(n, t + 1.05);
+    const o = c.createOscillator(), og = c.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(75, t); o.frequency.exponentialRampToValueAtTime(26, t + 0.6);
+    og.gain.setValueAtTime(vol * 1.3, t); og.gain.exponentialRampToValueAtTime(0.0008, t + 0.7);
+    o.connect(og); og.connect(out); o.start(t); this.track(o, t + 0.75);
+  },
+  ciws(vol, pan) {
+    if (!this.ok('ciws', 0.09)) return;
+    const c = this.ctx, t = c.currentTime, out = this.out(pan);
+    const o = c.createOscillator(), bp = c.createBiquadFilter(), g = c.createGain();
+    o.type = 'sawtooth'; o.frequency.setValueAtTime(92, t);
+    bp.type = 'bandpass'; bp.frequency.value = 1500; bp.Q.value = 1.6;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.02); g.gain.setValueAtTime(vol, t + 0.26); g.gain.exponentialRampToValueAtTime(0.0008, t + 0.34);
+    o.connect(bp); bp.connect(g); g.connect(out); o.start(t); this.track(o, t + 0.36);
   },
   splash(vol, pan) {
     if (!this.ok('splash', 0.03)) return;
@@ -549,9 +948,17 @@ const Snd = {
       const l = c.createOscillator(), lg = c.createGain(); l.frequency.value = lfoF; lg.gain.value = lfoDepth;
       l.connect(lg); lg.connect(lfoTarget === 'f' ? fl.frequency : g.gain);
       n.connect(fl); fl.connect(g); g.connect(this.sfx); n.start(); l.start();
+      return g;
     };
-    mk('lowpass', 420, 0.7, 0.16, 0.11, 0.08, 'g');   // surf and swell
-    mk('bandpass', 750, 0.6, 0.035, 0.07, 260, 'f');  // wind in the rigging
+    this.surf = mk('lowpass', 420, 0.7, 0.16, 0.11, 0.08, 'g');   // surf and swell
+    this.wind = mk('bandpass', 750, 0.6, 0.035, 0.07, 260, 'f');  // wind in the rigging
+  },
+  // the ambient bed follows the wind speed
+  setSea(k) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.surf.gain.setTargetAtTime(0.10 + 0.16 * k, t, 1.5);
+    this.wind.gain.setTargetAtTime(0.02 + 0.07 * k, t, 1.5);
   },
   // A short modal air in D dorian, looped softly.
   TUNE: [[62,1],[65,1],[69,1.5],[67,.5],[65,1],[64,1],[62,2],[69,1],[72,1],[74,1.5],[72,.5],[69,1],[67,1],[69,2],
@@ -585,23 +992,51 @@ const Snd = {
    World state
    ========================================================= */
 let T = 0, mode = 'menu', paused = false;
-let ships = [], balls = [], parts = [], debris = [], floaters = [];
+let ships = [], balls = [], missiles = [], tracers = [], parts = [], debris = [], floaters = [];
 let player = null, nextId = 1;
 let windFrom = rand(-Math.PI, Math.PI), windTarget = windFrom, windTimer = 30, windTo = windFrom + Math.PI;
 let wave = 0, cleared = 0, score = 0, sunk = 0, pending = [], intermission = 0, overTimer = -1;
-let cam = { x: 0, y: 0 }, shake = 0, arcVis = 0, lastFire = -99, hurt = 0;
+let cam = { x: 0, y: 0 }, shake = 0, arcVis = 0, lastFire = -99, hurt = 0, lastIntercept = -99;
 let enemyAcc = 1, enemyReload = 1;
-let best = 0;
-try { best = parseInt(localStorage.getItem('frigate-best') || '0', 10) || 0; } catch (e) {}
+let currentShip = 'resolute', currentEra = 'sail', seaBase = ERA_SEA.sail;
+const bests = {};
+const bestKey = id => id === 'resolute' ? 'frigate-best' : 'frigate-best-' + id;
+function loadBest(id) { try { return parseInt(localStorage.getItem(bestKey(id)) || '0', 10) || 0; } catch (e) { return 0; } }
+for (const k of Object.keys(CLASSES)) if (CLASSES[k].playable) bests[k] = loadBest(k);
+try {
+  const saved = localStorage.getItem('frigate-ship');
+  if (saved && CLASSES[saved] && CLASSES[saved].playable) { currentShip = saved; currentEra = CLASSES[saved].era; seaBase = ERA_SEA[currentEra]; zoomMul = CLASSES[saved].zoom; applyZoom(); }
+} catch (e) {}
+
+/* ---------- Wind and sea state ----------
+   windKn is the wind speed. It drives the sail power, how rough the sea looks, and
+   how fast the wave train drifts. The wave train is integrated (seaPos), never computed
+   from elapsed time, so a change in wind direction bends the drift instead of yanking
+   the whole sea sideways. */
+const WIND_MODES = { variable: null, light: 6, moderate: 13, fresh: 20, gale: 29 };
+let windMode = 'variable', windKn = 14, windKnTarget = 14, windKnTimer = 25;
+try { const w = localStorage.getItem('frigate-wind'); if (w && w in WIND_MODES) windMode = w; } catch (e) {}
+const seaPos = { x: 0, y: 0 };
+const seaK = () => clamp((windKn - 4) / 24, 0, 1);
+function windPower() {
+  let p = clamp(0.5 + 0.5 * windKn / 12, 0.62, 1.18);
+  if (windKn > 26) p -= (windKn - 26) * 0.03;
+  return p;
+}
+const seaSpread = () => 1 + 0.012 * Math.max(0, windKn - 10);
+function pickWindTarget() { const b = WIND_MODES[windMode]; return b == null ? rand(6, 24) : b + rand(-1.5, 1.5); }
+function snapWind() { windKnTarget = windKn = pickWindTarget(); windKnTimer = rand(18, 35); }
+snapWind();
 
 function makeShip(kind, x, y, heading, isPlayer) {
   const c = CLASSES[kind];
   return {
     id: nextId++, kind, c, x, y, heading, isPlayer,
     speed: c.maxSpeed * 0.45, angVel: 0, turnInput: 0,
-    sailIdx: 2, sail: 0.65, sailTarget: 0.65,
+    sailIdx: 2, sail: THROTTLES[c.era][2].v, sailTarget: THROTTLES[c.era][2].v,
     hp: c.hp, maxHp: c.hp, reload: { '-1': 0, '1': 0 }, aim: { '-1': -1, '1': -1 },
-    queue: [], trail: [], trailT: 0, decals: [], holes: [], smokeT: 0, eff: 1,
+    queue: [], trail: [], trailT: 0, decals: [], holes: [], smokeT: 0, funT: 0, eff: 1, tAng: 0,
+    missiles: c.missile ? c.missile.stock : 0,
     sinking: false, sinkT: 0, sinkDir: Math.random() < 0.5 ? -1 : 1, gone: false,
     repairing: 0, repairCd: 0,
     ai: { offset: rand(-0.45, 0.45), side: 0 },
@@ -609,9 +1044,9 @@ function makeShip(kind, x, y, heading, isPlayer) {
 }
 
 function resetWorld() {
-  ships = []; balls = []; parts = []; debris = []; floaters = [];
-  player = makeShip('player', 0, 0, windFrom + Math.PI / 2, true);
-  player.speed = 40;
+  ships = []; balls = []; missiles = []; tracers = []; parts = []; debris = []; floaters = [];
+  player = makeShip(currentShip, 0, 0, windFrom + Math.PI / 2, true);
+  player.speed = player.c.maxSpeed * 0.4;
   ships.push(player);
   cam.x = player.x; cam.y = player.y;
   wave = 0; cleared = 0; score = 0; sunk = 0; pending = []; intermission = 0; overTimer = -1;
@@ -619,25 +1054,29 @@ function resetWorld() {
 }
 
 /* ---------- Waves ---------- */
+function waveCounts(n) {
+  if (n === 1) return { l: 2, m: 0, h: 0 };
+  if (n === 2) return { l: 1, m: 2, h: 0 };
+  if (n === 3) return { l: 0, m: 2, h: 1 };
+  return {
+    h: Math.min(4, 1 + Math.floor((n - 4) / 2)),
+    m: Math.min(4, 2 + Math.floor((n - 3) / 3)),
+    l: Math.min(3, 1 + (n % 2) + Math.floor((n - 4) / 4)),
+  };
+}
 function waveComposition(n) {
-  if (n === 1) return ['sloop', 'sloop'];
-  if (n === 2) return ['brig', 'brig', 'sloop'];
-  if (n === 3) return ['frigate', 'brig', 'brig'];
-  const f = Math.min(4, 1 + Math.floor((n - 4) / 2));
-  const b = Math.min(4, 2 + Math.floor((n - 3) / 3));
-  const s = Math.min(3, 1 + (n % 2) + Math.floor((n - 4) / 4));
+  const pc = CLASSES[currentShip], foes = pc.foes, cnt = waveCounts(n);
+  const sc = x => x ? Math.max(1, Math.round(x * pc.waveScale)) : 0;
   const out = [];
-  for (let i = 0; i < f; i++) out.push('frigate');
-  for (let i = 0; i < b; i++) out.push('brig');
-  for (let i = 0; i < s; i++) out.push('sloop');
-  return out.slice(0, 10);
+  for (let i = 0; i < sc(cnt.h); i++) out.push(foes.h);
+  for (let i = 0; i < sc(cnt.m); i++) out.push(foes.m);
+  for (let i = 0; i < sc(cnt.l); i++) out.push(foes.l);
+  return out.slice(0, pc.era === 'modern' ? 6 : 10);
 }
 function describe(comp) {
-  const n = { frigate: 0, brig: 0, sloop: 0 };
-  comp.forEach(k => n[k]++);
-  const parts = [];
-  for (const k of ['frigate', 'brig', 'sloop']) if (n[k]) parts.push(`${n[k]} ${n[k] > 1 ? (k === 'sloop' ? 'sloops' : k + 's') : k}`);
-  return parts.join(', ') + ' sighted';
+  const n = {}, order = [];
+  for (const k of comp) { if (!n[k]) { n[k] = 0; order.push(k); } n[k]++; }
+  return order.map(k => { const c = CLASSES[k]; return `${n[k]} ${n[k] > 1 ? c.plural : c.label.toLowerCase()}`; }).join(', ') + ' sighted';
 }
 function startWave(n) {
   wave = n;
@@ -653,6 +1092,7 @@ function spawnEnemy(kind, ang) {
   const x = player.x + Math.cos(ang) * d, y = player.y + Math.sin(ang) * d;
   const s = makeShip(kind, x, y, Math.atan2(player.y - y, player.x - x), false);
   s.sailTarget = 1; s.sail = 0.8; s.speed = s.c.maxSpeed * 0.6;
+  if (s.c.mode === 'modern') s.reload[1] = rand(5, 12);   // no instant salvo on arrival
   ships.push(s);
 }
 
@@ -660,39 +1100,75 @@ function spawnEnemy(kind, ang) {
    Input
    ========================================================= */
 const keys = {};
+const isModern = s => s.c.mode === 'modern';
 function edge(code) {
   if (mode !== 'play' || paused || !player || player.sinking) return;
   switch (code) {
     case 'KeyW': case 'ArrowUp':   setSail(player.sailIdx + 1); break;
     case 'KeyS': case 'ArrowDown': setSail(player.sailIdx - 1); break;
-    case 'KeyQ': tryFire(-1, true); break;
-    case 'KeyE': tryFire(1, true); break;
-    case 'Space': { const a = tryFire(-1, false), b = tryFire(1, false); if (!a && !b) toast(player.repairing > 0 ? 'Guns silent while repairing' : 'No broadside loaded'); break; }
+    case 'KeyQ': isModern(player) ? tryGuns(true) : tryFire(-1, true); break;
+    case 'KeyE': isModern(player) ? tryMissiles(true) : tryFire(1, true); break;
+    case 'Space': {
+      if (isModern(player)) {
+        const a = tryGuns(false), b = tryMissiles(false);
+        if (!a && !b) toast(player.repairing > 0 ? 'Guns silent while repairing' : 'Nothing ready to fire');
+      } else {
+        const a = tryFire(-1, false), b = tryFire(1, false);
+        if (!a && !b) toast(player.repairing > 0 ? 'Guns silent while repairing' : 'No broadside loaded');
+      }
+      break;
+    }
     case 'KeyR': tryRepair(); break;
   }
 }
 function setSail(i) {
-  i = clamp(i, 0, SAILS.length - 1);
-  if (i !== player.sailIdx) { player.sailIdx = i; Snd.billow(0.18); Snd.creak(0.04); }
+  i = clamp(i, 0, THROTTLES[player.c.era].length - 1);
+  if (i !== player.sailIdx) { player.sailIdx = i; if (player.c.rig === 'sail') { Snd.billow(0.18); Snd.creak(0.04); } else Snd.creak(0.03); }
 }
 function tryFire(side, report) {
   const p = player;
   if (p.repairing > 0) { if (report) toast('Guns silent while repairing'); return false; }
-  if (p.reload[side] > 0) { if (report) toast(`${side < 0 ? 'Port' : 'Starboard'} guns reloading`); return false; }
+  if (p.reload[side] > 0) { if (report) toast(`${side < 0 ? 'Port' : 'Starboard'} ${p.c.turrets ? 'turrets' : 'guns'} reloading`); return false; }
   fireBroadside(p, side); lastFire = T; return true;
 }
-function tryRepair() {
+function tryGuns(report) {
   const p = player;
+  if (p.repairing > 0) { if (report) toast('Guns silent while repairing'); return false; }
+  if (p.reload[-1] > 0) { if (report) toast('Guns reloading'); return false; }
+  if (!fireGuns(p)) { if (report) toast('No target inside gun range'); return false; }
+  lastFire = T; return true;
+}
+function tryMissiles(report) {
+  const p = player;
+  if (p.missiles <= 0) { if (report) toast('Magazine empty. Resupply after the wave'); return false; }
+  if (p.reload[1] > 0) { if (report) toast(`Missile cells cycling: ${Math.ceil(p.reload[1])}s`); return false; }
+  const r = fireMissiles(p);
+  if (r === 'none') { if (report) toast('No target inside missile range'); return false; }
+  lastFire = T; if (report) toast('Missiles away'); return true;
+}
+function tryRepair() {
+  const p = player, sail = p.c.era === 'sail';
   if (p.repairing > 0) return;
-  if (p.repairCd > 0) { toast(`Carpenters need ${Math.ceil(p.repairCd)}s more`); return; }
-  if (p.hp >= p.maxHp) { toast('The hull is sound'); return; }
-  p.repairing = REPAIR_TIME; toast('Carpenters to the pumps and shot-holes');
+  if (p.repairCd > 0) { toast(`${sail ? 'Carpenters' : 'Damage control'} need ${Math.ceil(p.repairCd)}s more`); return; }
+  if (p.hp >= p.maxHp) { toast(sail ? 'The hull is sound' : 'Hull integrity is full'); return; }
+  p.repairing = REPAIR_TIME; toast(sail ? 'Carpenters to the pumps and shot-holes' : 'Damage control parties at work');
 }
 window.addEventListener('keydown', e => {
   Snd.ctx && Snd.ctx.state === 'suspended' && Snd.ctx.resume().catch(() => {});
   const playing = mode === 'play';
   if (playing && ['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
-  if (e.code === 'Escape' || e.code === 'KeyP') { if (playing) { togglePause(); e.preventDefault(); } return; }
+  if (e.code === 'Escape' || e.code === 'KeyP') {
+    if (playing) { togglePause(); e.preventDefault(); }
+    else if (!$('ships').hidden) show('era');
+    else if (!$('era').hidden || !$('controls').hidden) { show('menu'); $('bStart').focus(); }
+    return;
+  }
+  if (!playing && (!$('era').hidden || !$('ships').hidden) && /^Digit[1-9]$/.test(e.code)) {
+    const cards = document.querySelectorAll('.screen:not([hidden]) .pcard');
+    const c = cards[parseInt(e.code.slice(5), 10) - 1];
+    if (c) c.click();
+    return;
+  }
   if (e.code === 'KeyF' && !e.repeat) { toggleFullscreen(); return; }
   if (e.code === 'KeyM' && !e.repeat) { setMusic(!Snd.musicOn); return; }
   if (e.code === 'KeyN' && !e.repeat) { setSound(!Snd.on); return; }
@@ -708,41 +1184,198 @@ function localToWorld(s, lx, ly) {
   const c = Math.cos(s.heading), n = Math.sin(s.heading);
   return [s.x + lx * c - ly * n, s.y + lx * n + ly * c];
 }
-function fireBroadside(s, side) {
-  const n = s.c.guns / 2, L = s.c.L;
-  s.reload[side] = s.c.reload * (s.isPlayer ? 1 : enemyReload);
-  for (let i = 0; i < n; i++) {
-    const lx = lerp(L * 0.30, -L * 0.36, n > 1 ? i / (n - 1) : 0.5);
-    s.queue.push({ t: i * 0.036 + Math.random() * 0.03, side, lx });
+function nearestHostile(s, maxD) {
+  let best = null, bd = maxD || Infinity;
+  for (const o of ships) {
+    if (o === s || o.sinking || o.isPlayer === s.isPlayer) continue;
+    const d = Math.hypot(o.x - s.x, o.y - s.y);
+    if (d < bd) { bd = d; best = o; }
   }
-  if (s.isPlayer) shake = Math.max(shake, 4);
+  return best;
 }
-function spawnBall(s, side, lx) {
-  const [x, y] = localToWorld(s, lx, side * s.c.B * 0.5);
-  const spread = s.c.spread * (s.isPlayer ? 1 : enemyAcc);
-  const dir = s.heading + side * Math.PI / 2 + randn() * spread;
-  const sp = BALL_SPEED * rand(0.95, 1.05);
+// Heavy turrets lay themselves on the nearest enemy inside the side's firing arc, with lead.
+function layDir(s, side) {
+  const c = s.c, base = s.heading + side * Math.PI / 2;
+  if (!c.autoLay) return base;
+  let best = null, bd = Infinity;
+  for (const o of ships) {
+    if (o === s || o.sinking || o.isPlayer === s.isPlayer) continue;
+    const dx = o.x - s.x, dy = o.y - s.y, d = Math.hypot(dx, dy);
+    if (d > c.range) continue;
+    if (Math.abs(angNorm(Math.atan2(dy, dx) - base)) > c.arc + Math.atan2(o.c.L * 0.3, d)) continue;
+    if (d < bd) { bd = d; best = o; }
+  }
+  if (!best) return base;
+  const t = bd / c.shellSpeed;
+  const rx = best.x - s.x + (Math.cos(best.heading) * best.speed - Math.cos(s.heading) * s.speed) * t;
+  const ry = best.y - s.y + (Math.sin(best.heading) * best.speed - Math.sin(s.heading) * s.speed) * t;
+  return Math.atan2(ry, rx);
+}
+function fireBroadside(s, side) {
+  const c = s.c;
+  s.reload[side] = c.reload * (s.isPlayer ? 1 : enemyReload);
+  const dir = layDir(s, side);
+  c.bpos.forEach((lx, i) => s.queue.push({ t: i * 0.036 + Math.random() * 0.03, side, lx, dir }));
+  if (s.isPlayer) shake = Math.max(shake, 4 + Math.min(4, c.dmg * 0.08));
+}
+function spawnBall(s, q) {
+  const c = s.c, side = q.side;
+  const [x, y] = localToWorld(s, q.lx, c.turrets ? 0 : side * c.B * 0.5);
+  const spread = c.spread * (s.isPlayer ? 1 : enemyAcc) * seaSpread();
+  const dir = (q.dir !== undefined ? q.dir : s.heading + side * Math.PI / 2) + randn() * spread;
+  const sp = c.shellSpeed * rand(0.95, 1.05);
   const hx = Math.cos(s.heading) * s.speed, hy = Math.sin(s.heading) * s.speed;
   balls.push({
-    x, y, vx: Math.cos(dir) * sp + hx, vy: Math.sin(dir) * sp + hy, sp,
-    t: 0, life: s.c.range / BALL_SPEED * rand(0.8, 1.06), dist: 0,
-    owner: s, faction: s.isPlayer ? 0 : 1, dmg: s.c.dmg, range: s.c.range,
+    kind: 'ball', x, y, vx: Math.cos(dir) * sp + hx, vy: Math.sin(dir) * sp + hy, sp,
+    t: 0, life: c.range / c.shellSpeed * rand(0.8, 1.06), dist: 0,
+    owner: s, faction: s.isPlayer ? 0 : 1, dmg: c.dmg, range: c.range,
   });
   // muzzle flash and smoke
-  const cx = Math.cos(dir), cy = Math.sin(dir);
-  addP('flash', x + cx * 4, y + cy * 4, hx * 0.5, hy * 0.5, 0.13, 8, { ang: dir });
+  const cx = Math.cos(dir), cy = Math.sin(dir), f = c.flash / 8;
+  addP('flash', x + cx * 4, y + cy * 4, hx * 0.5, hy * 0.5, 0.13 * f, c.flash, { ang: dir });
   for (let k = 0; k < 2; k++) {
     const v = rand(20, 70);
-    addP('smoke', x + cx * rand(4, 10), y + cy * rand(4, 10), cx * v + hx * 0.4 + rand(-6, 6), cy * v + hy * 0.4 + rand(-6, 6), rand(2.4, 4.2), rand(5, 8), { grow: rand(5, 8), col: '#ebe7de', a0: 0.6 });
+    addP('smoke', x + cx * rand(4, 10), y + cy * rand(4, 10), cx * v + hx * 0.4 + rand(-6, 6), cy * v + hy * 0.4 + rand(-6, 6), rand(2.4, 4.2), rand(5, 8) * f, { grow: rand(5, 8) * f, col: '#ebe7de', a0: 0.6 });
   }
   const [vol, pan] = audioPos(x, y);
-  Snd.cannon(0.42 * vol, pan);
+  Snd.cannon(0.42 * vol, pan, clamp((c.flash - 8) / 6, 0, 1));
 }
+
+/* ---------- Modern guns: any bearing, auto-laid on the nearest hostile ---------- */
+function fireGuns(s) {
+  const g = s.c.gun, tgt = nearestHostile(s, g.range);
+  if (!tgt) return false;
+  s.reload[-1] = g.reload * (s.isPlayer ? 1 : enemyReload);
+  g.mounts.forEach((f, mi) => {
+    for (let k = 0; k < g.burst; k++) s.queue.push({ t: mi * 0.07 + k * 0.13 + Math.random() * 0.03, gun: true, lx: f * s.c.L, tgt });
+  });
+  if (s.isPlayer) shake = Math.max(shake, 2.5);
+  return true;
+}
+function spawnShell(s, q) {
+  const g = s.c.gun, t = q.tgt;
+  if (!t || t.sinking) return;
+  const [x, y] = localToWorld(s, q.lx, 0);
+  const d = Math.hypot(t.x - x, t.y - y), tf = d / g.speed;
+  const rx = t.x + (Math.cos(t.heading) * t.speed - Math.cos(s.heading) * s.speed) * tf - x;
+  const ry = t.y + (Math.sin(t.heading) * t.speed - Math.sin(s.heading) * s.speed) * tf - y;
+  const dir = Math.atan2(ry, rx) + randn() * g.spread * (s.isPlayer ? 1 : enemyAcc) * seaSpread();
+  const sp = g.speed * rand(0.97, 1.03);
+  const hx = Math.cos(s.heading) * s.speed, hy = Math.sin(s.heading) * s.speed;
+  balls.push({
+    kind: 'shell', x, y, vx: Math.cos(dir) * sp + hx, vy: Math.sin(dir) * sp + hy, sp,
+    t: 0, life: g.range / g.speed * 1.05, dist: 0,
+    owner: s, faction: s.isPlayer ? 0 : 1, dmg: g.dmg, range: g.range,
+  });
+  const cx = Math.cos(dir), cy = Math.sin(dir);
+  addP('flash', x + cx * 5, y + cy * 5, hx * 0.4, hy * 0.4, 0.10, 7, { ang: dir });
+  addP('smoke', x + cx * 6, y + cy * 6, cx * 30 + hx * 0.3, cy * 30 + hy * 0.3, rand(1.2, 2), rand(3, 5), { grow: 6, col: '#d8d6d0', a0: 0.45 });
+  const [vol, pan] = audioPos(x, y);
+  Snd.crack(0.32 * vol, pan);
+}
+
+/* ---------- Missiles ---------- */
+function fireMissiles(s) {
+  const m = s.c.missile;
+  if (s.missiles <= 0) return 'empty';
+  const tg = [];
+  for (const o of ships) if (o !== s && !o.sinking && o.isPlayer !== s.isPlayer) { const d = Math.hypot(o.x - s.x, o.y - s.y); if (d < m.range) tg.push([d, o]); }
+  if (!tg.length) return 'none';
+  tg.sort((a, b) => a[0] - b[0]);
+  const n = Math.min(m.salvo, s.missiles);
+  for (let i = 0; i < n; i++) s.queue.push({ t: 0.15 + i * 0.5, missile: true, tgt: tg[i % tg.length][1] });
+  s.missiles -= n;
+  s.reload[1] = m.reload * (s.isPlayer ? 1 : enemyReload);
+  return 'ok';
+}
+function spawnMissile(s, q) {
+  const c = s.c, m = c.missile, t = q.tgt;
+  if (!t || t.sinking) return;
+  const [x, y] = localToWorld(s, c.L * (c.lay.vlsX != null ? c.lay.vlsX : -0.05), 0);
+  const h = Math.atan2(t.y - y, t.x - x) + rand(-0.4, 0.4);
+  const stealth = t.c.def ? t.c.def.stealth : 0;
+  const lost = stealth > 0 && Math.random() < stealth;
+  missiles.push({
+    x, y, h, spd: m.speed, turn: m.turn, t: 0, life: m.range / m.speed * 1.4, tgt: t, owner: s,
+    faction: s.isPlayer ? 0 : 1, dmg: m.dmg, loseAt: lost ? rand(1.0, 2.0) : Infinity, lost: false, trailT: 0, dead: false,
+  });
+  addP('flash', x, y, 0, 0, 0.18, 9, { ang: h });
+  for (let k = 0; k < 4; k++) addP('smoke', x, y, rand(-14, 14), rand(-14, 14), rand(0.9, 1.6), rand(3, 5), { grow: 7, col: '#efece6', a0: 0.55 });
+  const [vol, pan] = audioPos(x, y);
+  Snd.missile(0.38 * vol, pan);
+}
+function updateMissiles(dt) {
+  for (const m of missiles) {
+    if (m.dead) continue;
+    m.t += dt;
+    if (m.t > m.loseAt) m.lost = true;
+    if (m.tgt && !m.tgt.sinking && !m.lost) {
+      const want = Math.atan2(m.tgt.y - m.y, m.tgt.x - m.x);
+      m.h = angNorm(m.h + clamp(angNorm(want - m.h), -m.turn * dt, m.turn * dt));
+    }
+    const sp = m.spd * Math.min(1, 0.3 + m.t / 0.7);
+    m.x += Math.cos(m.h) * sp * dt; m.y += Math.sin(m.h) * sp * dt;
+    m.trailT -= dt;
+    if (m.trailT <= 0) {
+      m.trailT = 0.035;
+      addP('smoke', m.x, m.y, 0, 0, rand(0.9, 1.4), 2.2, { grow: 3.5, col: '#f1eee8', a0: 0.5 });
+    }
+    // impact on any opposing hull
+    for (const s of ships) {
+      if (s.sinking || (s.isPlayer ? 0 : 1) === m.faction) continue;
+      const dx = m.x - s.x, dy = m.y - s.y, rr = s.c.L * 0.5 + 6;
+      if (dx * dx + dy * dy > rr * rr) continue;
+      const c = Math.cos(s.heading), n = Math.sin(s.heading);
+      const lx = dx * c + dy * n, ly = -dx * n + dy * c;
+      const ex = lx / (s.c.L * 0.5 + 4), ey = ly / (s.c.B * 0.5 + 5);
+      if (ex * ex + ey * ey <= 1) {
+        m.dead = true;
+        damageShip(s, m.dmg, m.x, m.y, m.owner, true);
+        addP('flash', m.x, m.y, 0, 0, 0.3, 16, { ang: rand(0, TAU) });
+        for (let k = 0; k < 6; k++) addP('smoke', m.x, m.y, rand(-30, 30), rand(-30, 30), rand(1.6, 3), rand(5, 9), { grow: 9, col: '#5d5a56', a0: 0.6 });
+        for (let k = 0; k < 6; k++) addP('fire', m.x, m.y, rand(-40, 40), rand(-40, 40), rand(0.3, 0.7), rand(4, 8));
+        const [vol, pan] = audioPos(m.x, m.y);
+        Snd.boom(0.5 * vol, pan);
+        break;
+      }
+    }
+    if (!m.dead && m.t > m.life) { m.dead = true; splash(m.x, m.y, true); }
+  }
+  if (missiles.some(m => m.dead)) missiles = missiles.filter(m => !m.dead);
+}
+// Close-in guns and SAMs act on their own. Hazard rates mean a faster missile
+// spends less time inside the envelope and so is shot down less often.
+function updateDefense(dt) {
+  for (const s of ships) {
+    const d = s.c.def;
+    if (!d || s.sinking || (!d.ciwsR && !d.samR)) continue;
+    let samBusy = 0;
+    for (const m of missiles) {
+      if (m.dead || m.tgt !== s) continue;
+      const dist = Math.hypot(m.x - s.x, m.y - s.y);
+      if (d.ciwsR && dist < d.ciwsR && Math.random() < 1 - Math.exp(-d.ciwsL * dt)) { intercept(s, m, 'ciws'); continue; }
+      if (d.samR && dist < d.samR && dist > 70 && samBusy < d.samCh) {
+        samBusy++;
+        if (Math.random() < 1 - Math.exp(-d.samL * dt)) intercept(s, m, 'sam');
+      }
+    }
+  }
+}
+function intercept(s, m, kind) {
+  m.dead = true;
+  tracers.push({ x0: s.x, y0: s.y, x1: m.x, y1: m.y, t: 0, life: kind === 'ciws' ? 0.22 : 0.35, kind });
+  addP('flash', m.x, m.y, 0, 0, 0.22, 11, { ang: rand(0, TAU) });
+  for (let k = 0; k < 4; k++) addP('smoke', m.x, m.y, rand(-25, 25), rand(-25, 25), rand(1, 2), rand(3, 6), { grow: 7, col: '#8e8a84', a0: 0.5 });
+  const [vol, pan] = audioPos(m.x, m.y);
+  if (kind === 'ciws') Snd.ciws(0.22 * vol, pan); else Snd.boom(0.28 * vol, pan);
+  if (s.isPlayer && T - lastIntercept > 1.2) { lastIntercept = T; toast(kind === 'ciws' ? 'Close-in guns splash a missile' : 'Missile intercepted'); }
+}
+
 function audioPos(x, y) {
   const dx = x - cam.x, dy = y - cam.y, d = Math.hypot(dx, dy);
-  return [clamp(1 - d / 1700, 0.04, 1), clamp(dx / (W / ZOOM * 0.6), -1, 1)];
+  return [clamp(1 - d / (1700 / Math.max(0.6, zoomMul)), 0.04, 1), clamp(dx / (W / ZOOM * 0.6), -1, 1)];
 }
-function damageShip(s, amt, bx, by, attacker) {
+function damageShip(s, amt, bx, by, attacker, heavy) {
   if (s.sinking) return;
   s.hp = Math.max(0, s.hp - amt);
   // decal at the hit, in ship-local coords
@@ -750,26 +1383,29 @@ function damageShip(s, amt, bx, by, attacker) {
   let lx = dx * c + dy * n, ly = -dx * n + dy * c;
   const ex = lx / (s.c.L * 0.5), ey = ly / (s.c.B * 0.5), r = Math.hypot(ex, ey);
   if (r > 0.88) { lx *= 0.88 / r; ly *= 0.88 / r; }
+  const big = heavy || amt > 12;
   if (s.decals.length < 46) {
     const pts = []; for (let k = 0; k < 6; k++) { const a = k / 6 * TAU, rr = rand(0.55, 1.2); pts.push([Math.cos(a) * rr, Math.sin(a) * rr]); }
-    s.decals.push({ x: lx, y: ly, r: rand(1.3, 2.5), pts });
+    s.decals.push({ x: lx, y: ly, r: rand(1.3, 2.5) * (big ? 1.6 : 1), pts });
   }
-  if (Math.random() < 0.3 && s.holes.length < 14) s.holes.push({ m: Math.floor(Math.random() * s.c.masts.length), u: rand(-0.8, 0.8), v: rand(0.2, 0.8), r: rand(0.8, 1.6) });
+  if (s.c.masts && Math.random() < 0.3 && s.holes.length < 14) s.holes.push({ m: Math.floor(Math.random() * s.c.masts.length), u: rand(-0.8, 0.8), v: rand(0.2, 0.8), r: rand(0.8, 1.6) });
   // splinters
-  for (let k = 0; k < 5; k++) {
+  for (let k = 0; k < (big ? 8 : 5); k++) {
     const a = rand(0, TAU), v = rand(40, 120);
     addP('splinter', bx, by, Math.cos(a) * v, Math.sin(a) * v, rand(0.5, 0.9), rand(2, 3.6), { rot: rand(0, TAU), vr: rand(-12, 12) });
   }
   addP('smoke', bx, by, rand(-8, 8), rand(-8, 8), rand(1, 1.6), 3, { grow: 9, col: '#a59a88', a0: 0.5 });
-  if (Math.random() < 0.08) addDebris(bx, by, 'plank');
+  if (big) for (let k = 0; k < 3; k++) addP('fire', bx, by, rand(-20, 20), rand(-20, 20), rand(0.25, 0.5), rand(3, 6));
+  if (Math.random() < 0.08) addDebris(bx, by, s.c.era === 'sail' ? 'plank' : 'scrap');
   const [vol, pan] = audioPos(bx, by);
   Snd.hit(0.45 * vol, pan);
-  if (s.isPlayer) { shake = Math.max(shake, 5); hurt = Math.min(1, hurt + 0.12); }
+  if (s.isPlayer) { shake = Math.max(shake, big ? 8 : 5); hurt = Math.min(1, hurt + (big ? 0.2 : 0.12)); }
   if (s.hp <= 0) sinkShip(s, attacker);
 }
 function sinkShip(s, attacker) {
   s.sinking = true; s.sinkT = 0; s.queue.length = 0; s.repairing = 0;
-  for (let k = 0; k < 22; k++) addDebris(s.x + rand(-s.c.L * 0.4, s.c.L * 0.4), s.y + rand(-s.c.B, s.c.B), ['plank','plank','barrel','scrap','spar'][k % 5]);
+  const kinds = s.c.era === 'sail' ? ['plank', 'plank', 'barrel', 'scrap', 'spar'] : ['scrap', 'scrap', 'barrel', 'plank', 'scrap'];
+  for (let k = 0; k < 22; k++) addDebris(s.x + rand(-s.c.L * 0.4, s.c.L * 0.4), s.y + rand(-s.c.B, s.c.B), kinds[k % 5]);
   for (let k = 0; k < 14; k++) {
     const [x, y] = localToWorld(s, rand(-s.c.L * 0.45, s.c.L * 0.45), rand(-s.c.B * 0.4, s.c.B * 0.4));
     addP('smoke', x, y, rand(-10, 10), rand(-10, 10), rand(2.5, 4), rand(5, 9), { grow: 10, col: '#6d6a66', a0: 0.6 });
@@ -809,22 +1445,30 @@ function splash(x, y, big) {
 /* =========================================================
    Update
    ========================================================= */
+let seaSndT = 0;
 function update(dt) {
   T += dt;
-  // wind slowly backs and veers
+  // wind direction slowly backs and veers; wind speed gusts and settles
   windTimer -= dt;
   if (windTimer <= 0) { windTarget = windFrom + rand(-0.6, 0.6); windTimer = rand(25, 45); }
   windFrom = angNorm(windFrom + clamp(angNorm(windTarget - windFrom), -0.02 * dt, 0.02 * dt));
   windTo = windFrom + Math.PI;
+  windKnTimer -= dt;
+  if (windKnTimer <= 0) { windKnTarget = pickWindTarget(); windKnTimer = rand(18, 35); }
+  windKn += clamp(windKnTarget - windKn, -0.35 * dt, 0.35 * dt);
+  // the wave train moves one way at one speed; integrate it so veering never jumps the sea
+  const drift = 4 + windKn * 0.55;
+  seaPos.x += Math.cos(windTo) * drift * dt; seaPos.y += Math.sin(windTo) * drift * dt;
+  seaSndT -= dt; if (seaSndT <= 0) { seaSndT = 1; Snd.setSea(seaK()); }
 
   if (mode === 'menu') {
     player.turnInput = Math.sin(T * 0.12) * 0.35;
     player.sailTarget = 0.65;
     const off = Math.abs(angNorm(player.heading - windFrom)) * 180 / Math.PI;
-    if (off < 55) player.turnInput = 1;
+    if (player.c.windDep > 0.5 && off < 55) player.turnInput = 1;
   } else if (mode === 'play' && player && !player.sinking) {
     player.turnInput = ((keys.KeyD || keys.ArrowRight) ? 1 : 0) - ((keys.KeyA || keys.ArrowLeft) ? 1 : 0);
-    player.sailTarget = SAILS[player.sailIdx].v;
+    player.sailTarget = THROTTLES[player.c.era][player.sailIdx].v;
   }
 
   for (const s of ships) {
@@ -833,6 +1477,8 @@ function update(dt) {
   }
   shipCollisions(dt);
   updateBalls(dt);
+  updateMissiles(dt);
+  updateDefense(dt);
   updateParticles(dt);
   if (mode === 'play') waveLogic(dt);
   ships = ships.filter(s => !s.gone);
@@ -848,9 +1494,9 @@ function update(dt) {
   shake = Math.max(0, shake - dt * 18);
   hurt = Math.max(0, hurt - dt * 0.9);
 
-  // ambient creaks
+  // ambient creaks (a sailing ship talks more than a steel one)
   Snd.nextCreak -= dt;
-  if (Snd.nextCreak <= 0) { Snd.creak(rand(0.02, 0.045)); Snd.nextCreak = rand(4, 10); }
+  if (Snd.nextCreak <= 0) { Snd.creak((player && player.c.rig === 'sail' ? rand(0.02, 0.045) : rand(0.008, 0.018))); Snd.nextCreak = rand(4, 10); }
   Snd.tick();
 }
 
@@ -873,37 +1519,70 @@ function physics(s, dt) {
     s.trail.length && updateTrail(s, dt);
     return;
   }
-  // sails are handled gradually by the crew
-  s.sail += clamp(s.sailTarget - s.sail, -0.45 * dt, 0.45 * dt);
+  // sails and engine orders are worked gradually by the crew
+  s.sail += clamp(s.sailTarget - s.sail, -c.slew * dt, c.slew * dt);
   const offDeg = Math.abs(angNorm(s.heading - windFrom)) * 180 / Math.PI;
-  let eff = sailEfficiency(offDeg);
-  if (!s.isPlayer) eff = 0.42 + 0.58 * eff;   // AI is forgiving of the wind
+  let eff = 1, wp = 1;
+  if (c.windDep > 0) {
+    eff = lerp(1, sailEfficiency(offDeg), c.windDep);
+    if (!s.isPlayer) eff = 0.42 + 0.58 * eff;   // AI is forgiving of the wind
+    wp = lerp(1, windPower(), c.windDep);       // and a fresher breeze drives a sailing ship harder
+  }
   s.eff = eff; s.offDeg = offDeg;
-  let target = c.maxSpeed * s.sail * eff * (0.72 + 0.28 * s.hp / s.maxHp);
+  let target = c.maxSpeed * s.sail * eff * wp * (0.72 + 0.28 * s.hp / s.maxHp);
   if (s.repairing > 0) target = Math.min(target, c.maxSpeed * 0.25);
-  const acc = target > s.speed ? 11 : 15;
+  const acc = target > s.speed ? c.acc : c.dec;
   s.speed += clamp(target - s.speed, -acc * dt, acc * dt);
   // turning: sluggish at low speed, with rotational inertia
   const tf = 0.22 + 0.78 * clamp(s.speed / (c.maxSpeed * 0.45), 0, 1);
   const targetAV = s.turnInput * c.turn * tf;
-  s.angVel += clamp(targetAV - s.angVel, -1.3 * dt, 1.3 * dt);
+  s.angVel += clamp(targetAV - s.angVel, -c.turnAcc * dt, c.turnAcc * dt);
   s.heading = angNorm(s.heading + s.angVel * dt);
   s.speed *= 1 - Math.abs(s.angVel) * 0.06 * dt;
   s.x += Math.cos(s.heading) * s.speed * dt;
   s.y += Math.sin(s.heading) * s.speed * dt;
 
+  // bow spray: the faster she goes the more the water throws up
+  const f = s.speed / c.maxSpeed;
+  if (f > 0.55 && Math.random() < dt * 45 * (f - 0.5)) {
+    const [bx, by] = localToWorld(s, c.L * 0.46, rand(-c.B * 0.3, c.B * 0.3));
+    const a = s.heading + (Math.random() < 0.5 ? -1 : 1) * rand(0.9, 1.5), v = rand(20, 50);
+    addP('drop', bx, by, Math.cos(a) * v + Math.cos(s.heading) * s.speed * 0.5, Math.sin(a) * v + Math.sin(s.heading) * s.speed * 0.5, rand(0.25, 0.5), rand(0.7, 1.3));
+  }
+  // funnel smoke on steam ships
+  if (c.rig === 'steam' && c.lay.funnels) {
+    s.funT -= dt;
+    if (s.funT <= 0) {
+      s.funT = 0.16 / (0.4 + s.sail);
+      const wx = Math.cos(windTo) * 14, wy = Math.sin(windTo) * 14;
+      for (const fx of c.lay.funnels) {
+        const [x, y] = localToWorld(s, c.L * fx, 0);
+        addP('smoke', x, y, wx + rand(-3, 3), wy + rand(-3, 3), rand(2.2, 3.4), rand(2.6, 4), { grow: 6, col: '#34322f', a0: 0.42 });
+      }
+    }
+  }
+  // turrets and gun mounts train on the nearest hostile
+  if (c.turrets || c.mode === 'modern') {
+    const e = nearestHostile(s, c.range * 1.4);
+    const want = e ? angNorm(Math.atan2(e.y - s.y, e.x - s.x) - s.heading) : 0;
+    s.tAng = angNorm(s.tAng + clamp(angNorm(want - s.tAng), -1.6 * dt, 1.6 * dt));
+  }
+
   // reloads, repairs
   for (const side of [-1, 1]) if (s.reload[side] > 0) s.reload[side] = Math.max(0, s.reload[side] - dt);
   if (s.repairing > 0) {
-    s.repairing -= dt; s.hp = Math.min(s.maxHp, s.hp + REPAIR_RATE * dt);
+    s.repairing -= dt; s.hp = Math.min(s.maxHp, s.hp + (s.maxHp / 45) * dt);
     if (Math.random() < dt * 3) Snd.creak(0.03);
     if (s.repairing <= 0) { s.repairing = 0; s.repairCd = REPAIR_CD; if (s.isPlayer) toast('Repairs complete'); }
   } else if (s.repairCd > 0) s.repairCd = Math.max(0, s.repairCd - dt);
 
-  // the gun crews fire down the side
+  // the gun crews fire down the side, the VLS cells cycle
   for (let i = s.queue.length - 1; i >= 0; i--) {
     const q = s.queue[i]; q.t -= dt;
-    if (q.t <= 0) { spawnBall(s, q.side, q.lx); s.queue.splice(i, 1); }
+    if (q.t <= 0) {
+      if (q.gun) spawnShell(s, q); else if (q.missile) spawnMissile(s, q); else spawnBall(s, q);
+      s.queue.splice(i, 1);
+    }
   }
 
   // damage smoke and fire
@@ -920,27 +1599,40 @@ function physics(s, dt) {
   }
   updateTrail(s, dt);
 }
+// The wake is laid down in the water, so its length and strength follow the ship's speed.
 function updateTrail(s, dt) {
   s.trailT -= dt;
   if (s.trailT <= 0 && !s.sinking) {
     s.trailT = 0.06;
     const [x, y] = localToWorld(s, -s.c.L * 0.48, 0);
-    s.trail.unshift({ x, y, h: s.heading, sp: s.speed / s.c.maxSpeed, age: 0 });
+    const f = clamp(s.speed / s.c.maxSpeed, 0, 1.2);
+    s.trail.unshift({ x, y, h: s.heading, sp: f, age: 0, life: 1.6 + 2.6 * Math.min(1, f) });
   }
   for (const p of s.trail) p.age += dt;
-  while (s.trail.length && s.trail[s.trail.length - 1].age > 3.4) s.trail.pop();
+  while (s.trail.length && s.trail[s.trail.length - 1].age > s.trail[s.trail.length - 1].life) s.trail.pop();
 }
 
+// Keep clear of other ships: nudge the desired heading away from anything close.
+function steerClear(s, desired) {
+  let ax = Math.cos(desired), ay = Math.sin(desired);
+  for (const o of ships) {
+    if (o === s || o.sinking) continue;
+    const ox = s.x - o.x, oy = s.y - o.y, d = Math.hypot(ox, oy), lim = (s.c.L + o.c.L) * 0.7 + 30;
+    if (d < lim && d > 0.01) { const w = (1 - d / lim) * (o.isPlayer ? 1.6 : 2.4); ax += ox / d * w; ay += oy / d * w; }
+  }
+  return Math.atan2(ay, ax);
+}
 function aiUpdate(s, dt) {
   const p = player;
   if (!p || p.sinking || mode !== 'play') { s.turnInput = 0; s.sailTarget = 0.5; return; }
+  if (s.c.mode === 'modern') { aiModern(s, dt, p); return; }
   const dx = p.x - s.x, dy = p.y - s.y, dist = Math.hypot(dx, dy);
   const bearing = Math.atan2(dy, dx);
   const rel = angNorm(bearing - s.heading);       // + means the player is to starboard
-  const R = s.c.range;
+  const c = s.c, R = c.range, close = Math.max(170, c.L * 1.5);
   let desired;
   if (dist > R * 1.25) {
-    const lead = dist / BALL_SPEED;
+    const lead = dist / c.shellSpeed;
     const tx = p.x + Math.cos(p.heading) * p.speed * lead, ty = p.y + Math.sin(p.heading) * p.speed * lead;
     desired = Math.atan2(ty - s.y, tx - s.x) + s.ai.offset;
     s.sailTarget = 1; s.ai.side = 0;
@@ -948,34 +1640,51 @@ function aiUpdate(s, dt) {
     if (!s.ai.side) s.ai.side = rel >= 0 ? 1 : -1;
     let side = s.ai.side;
     // swing round to the loaded battery if the engaged one is still reloading
-    if (s.reload[side] > 3 && s.reload[-side] <= 0.3 && dist > 160) side = s.ai.side = -side;
+    if (s.reload[side] > 3 && s.reload[-side] <= 0.3 && dist > close) side = s.ai.side = -side;
     let off = Math.PI / 2;
-    if (dist < 170) off += 0.55;            // too close: open the range
-    else if (dist > R * 0.75) off -= 0.5;   // too far: close in
+    if (dist < close) off += 0.55;            // too close: open the range
+    else if (dist > R * 0.75) off -= 0.5;     // too far: close in
     desired = bearing - side * off;
     s.sailTarget = s.kind === 'sloop' ? 0.85 : 0.7;
   }
-  // keep clear of other ships
-  let ax = Math.cos(desired), ay = Math.sin(desired);
-  for (const o of ships) {
-    if (o === s || o.sinking) continue;
-    const ox = s.x - o.x, oy = s.y - o.y, d = Math.hypot(ox, oy), lim = (s.c.L + o.c.L) * 0.7 + 30;
-    if (d < lim && d > 0.01) { const w = (1 - d / lim) * (o.isPlayer ? 1.6 : 2.4); ax += ox / d * w; ay += oy / d * w; }
+  desired = steerClear(s, desired);
+  // sailing ships never point straight into the wind
+  if (c.windDep > 0.5) {
+    const offWind = angNorm(desired - windFrom);
+    if (Math.abs(offWind) < 0.72) desired = windFrom + (offWind >= 0 ? 0.76 : -0.76);
   }
-  desired = Math.atan2(ay, ax);
-  // never point straight into the wind
-  const offWind = angNorm(desired - windFrom);
-  if (Math.abs(offWind) < 0.72) desired = windFrom + (offWind >= 0 ? 0.76 : -0.76);
   s.turnInput = clamp(angNorm(desired - s.heading) * 2.2, -1, 1);
 
   // gunnery: lay the guns, wait for the target to bear, then fire
   for (const side of [-1, 1]) {
-    const inArc = Math.abs(angNorm(rel - side * Math.PI / 2)) < ARC * 0.95 && dist < R * 0.97;
+    const inArc = Math.abs(angNorm(rel - side * Math.PI / 2)) < c.arc * 0.95 && dist < R * 0.97;
     if (inArc && s.reload[side] <= 0 && s.queue.length === 0) {
       if (s.aim[side] < 0) s.aim[side] = rand(0.3, 1.3);
       else { s.aim[side] -= dt; if (s.aim[side] <= 0) { fireBroadside(s, side); s.aim[side] = -1; } }
     } else s.aim[side] = -1;
   }
+}
+// Missile-age hostiles: hold a standoff ring, shoot missiles first and guns inside gun range.
+function aiModern(s, dt, p) {
+  const c = s.c, dx = p.x - s.x, dy = p.y - s.y, dist = Math.hypot(dx, dy), bearing = Math.atan2(dy, dx);
+  const rel = angNorm(bearing - s.heading), st = c.stand;
+  let desired;
+  if (dist > st * 1.3) {
+    desired = bearing + s.ai.offset * 0.5; s.sailTarget = 1; s.ai.side = 0;
+  } else {
+    if (!s.ai.side) s.ai.side = rel >= 0 ? 1 : -1;
+    let off = Math.PI / 2;
+    if (dist < st * 0.7) off += 0.6; else if (dist > st * 1.1) off -= 0.5;
+    desired = bearing - s.ai.side * off;
+    s.sailTarget = s.kind === 'fac' ? 0.9 : 0.65;
+  }
+  desired = steerClear(s, desired);
+  s.turnInput = clamp(angNorm(desired - s.heading) * 2.2, -1, 1);
+  if (s.reload[-1] <= 0 && s.queue.length === 0 && dist < c.gun.range * 0.97) {
+    if (s.aim[-1] < 0) s.aim[-1] = rand(0.2, 0.9);
+    else { s.aim[-1] -= dt; if (s.aim[-1] <= 0) { fireGuns(s); s.aim[-1] = -1; } }
+  } else s.aim[-1] = -1;
+  if (s.missiles > 0 && s.reload[1] <= 0 && dist < c.missile.range * 0.95) fireMissiles(s);
 }
 
 function shipCollisions(dt) {
@@ -1018,7 +1727,7 @@ function updateBalls(dt) {
     }
     if (hit) { balls.splice(i, 1); continue; }
     if (b.t >= b.life) {
-      splash(b.x, b.y, false);
+      splash(b.x, b.y, b.dmg > 12);
       const [vol, pan] = audioPos(b.x, b.y);
       Snd.splash(0.22 * vol, pan);
       balls.splice(i, 1);
@@ -1027,7 +1736,7 @@ function updateBalls(dt) {
 }
 
 function updateParticles(dt) {
-  const wx = Math.cos(windTo) * 10, wy = Math.sin(windTo) * 10;
+  const wx = Math.cos(windTo) * (4 + windKn * 0.5), wy = Math.sin(windTo) * (4 + windKn * 0.5);
   for (let i = parts.length - 1; i >= 0; i--) {
     const p = parts[i];
     p.t += dt;
@@ -1047,6 +1756,7 @@ function updateParticles(dt) {
     d.rot += d.vr * dt; d.vr *= 1 - 0.3 * dt;
   }
   for (let i = floaters.length - 1; i >= 0; i--) { floaters[i].t += dt; if (floaters[i].t > 2.6) floaters.splice(i, 1); }
+  for (let i = tracers.length - 1; i >= 0; i--) { tracers[i].t += dt; if (tracers[i].t > tracers[i].life) tracers.splice(i, 1); }
 }
 
 function waveLogic(dt) {
@@ -1067,12 +1777,17 @@ function waveLogic(dt) {
   const alive = ships.some(s => !s.isPlayer && !s.sinking);
   if (wave > 0 && !alive && pending.length === 0) {
     cleared = wave;
-    const bonus = 150 * wave;
+    const bonus = 150 * wave, c = player.c;
     score += bonus;
-    const heal = Math.min(20, player.maxHp - player.hp);
+    const heal = Math.min(Math.round(c.hp * 0.11), player.maxHp - player.hp);
     player.hp += heal;
+    let extra = '';
+    if (c.missile) {
+      const add = Math.min(Math.ceil(c.missile.stock / 2), c.missile.stock - player.missiles);
+      player.missiles += add; if (add > 0) extra = ` · magazine +${add}`;
+    }
     intermission = 7;
-    showBanner(`Wave ${wave} defeated`, `+${bonus} bonus · carpenters patch ${Math.round(heal)} hull`);
+    showBanner(`Wave ${wave} defeated`, `+${bonus} bonus · ${c.era === 'sail' ? 'carpenters patch' : 'repair crews restore'} ${Math.round(heal)} hull${extra}`);
   }
 }
 
@@ -1083,7 +1798,7 @@ let view = { x0: 0, y0: 0, w: 0, h: 0 };
 function render() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
-  ctx.fillStyle = '#0d3651'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = seaBase; ctx.fillRect(0, 0, W, H);
   const shx = (Math.random() - 0.5) * shake, shy = (Math.random() - 0.5) * shake;
   view.w = W / ZOOM; view.h = H / ZOOM; view.x0 = cam.x - view.w / 2; view.y0 = cam.y - view.h / 2;
   ctx.setTransform(DPR * ZOOM, 0, 0, DPR * ZOOM, DPR * (W / 2 - cam.x * ZOOM + shx), DPR * (H / 2 - cam.y * ZOOM + shy));
@@ -1091,10 +1806,12 @@ function render() {
   drawSea();
   drawWakes();
   drawDebris();
-  if (mode === 'play') drawArcs();
+  if (mode === 'play') { if (isModern(player)) drawRanges(); else drawArcs(); }
   const order = ships.slice().sort((a, b) => (b.sinking - a.sinking) || (a.isPlayer - b.isPlayer));
   for (const s of order) drawShip(s);
   drawBalls();
+  drawMissiles();
+  drawTracers();
   drawParticles();
   drawFloaters();
 
@@ -1105,21 +1822,24 @@ function render() {
   if (mode === 'play') { drawHealthBars(); drawIndicators(); }
 }
 
+/* The sea is one wave train. Every layer moves along the wind at a fixed fraction of
+   the same integrated drift, so layers never fight each other, and the whole thing
+   slows and quickens with the wind speed. The ship's own speed shows up as the sea
+   streaming past (world-fixed texture), the wake and the bow wave. */
 function drawSea() {
-  const v = view;
-  // low-frequency swell variation
+  const v = view, k = seaK(), px = seaPos.x, py = seaPos.y;
+  // low-frequency swell: broad soft patches that roll with the wave train
   ctx.save();
-  const sd = T * 4;
   ctx.scale(4, 4);
-  ctx.translate((Math.cos(windTo) * sd) % TILE_S, (Math.sin(windTo) * sd) % TILE_S);
+  ctx.translate((px * 0.5 / 4) % TILE_S, (py * 0.5 / 4) % TILE_S);
   ctx.fillStyle = patSwell;
   ctx.fillRect(v.x0 / 4 - TILE_S * 2, v.y0 / 4 - TILE_S * 2, v.w / 4 + TILE_S * 4, v.h / 4 + TILE_S * 4);
   ctx.restore();
-  // troughs and two cross-fading crest layers drift downwind
-  seaLayer(patTrough, TILE_B, Math.cos(windTo) * T * 5 + Math.sin(T * 0.3) * 6, Math.sin(windTo) * T * 5, 0.55);
-  const ph = Math.sin(T * 0.7);
-  seaLayer(patCrestA, TILE_A, Math.cos(windTo) * T * 11, Math.sin(windTo) * T * 11, 0.30 + 0.16 * ph);
-  seaLayer(patCrestB, TILE_A, Math.cos(windTo + 0.4) * T * 8 + 130, Math.sin(windTo + 0.4) * T * 8 + 70, 0.30 - 0.16 * ph);
+  // troughs and two crest layers, all drifting downwind together; a rougher sea shows more crest
+  const breath = 0.04 * Math.sin(T * 0.5);
+  seaLayer(patTrough, TILE_B, px * 0.55, py * 0.55, 0.50 + 0.14 * k);
+  seaLayer(patCrestA, TILE_A, px, py, 0.18 + 0.30 * k + breath);
+  seaLayer(patCrestB, TILE_A, px * 0.8 + 130, py * 0.8 + 70, 0.16 + 0.26 * k - breath);
   // faint chart graticule
   ctx.strokeStyle = 'rgba(214,196,150,0.07)'; ctx.lineWidth = 1 / ZOOM;
   const G = 600;
@@ -1127,21 +1847,25 @@ function drawSea() {
   for (let x = Math.floor(v.x0 / G) * G; x < v.x0 + v.w; x += G) { ctx.moveTo(x, v.y0); ctx.lineTo(x, v.y0 + v.h); }
   for (let y = Math.floor(v.y0 / G) * G; y < v.y0 + v.h; y += G) { ctx.moveTo(v.x0, y); ctx.lineTo(v.x0 + v.w, y); }
   ctx.stroke();
-  // whitecaps
+  // whitecaps: each is born, travels a short way downwind with the crest, and fades.
+  // More of them, and longer, as the wind rises.
   const C = 140, cx0 = Math.floor(v.x0 / C), cy0 = Math.floor(v.y0 / C), cx1 = Math.ceil((v.x0 + v.w) / C), cy1 = Math.ceil((v.y0 + v.h) / C);
-  const pa = windTo + Math.PI / 2, px = Math.cos(pa), py = Math.sin(pa);
+  const wx = Math.cos(windTo), wy = Math.sin(windTo), ax = -wy, ay = wx;
+  const dens = 0.16 + 0.5 * k, lenK = 0.8 + 0.8 * k;
   ctx.strokeStyle = '#eaf4f7'; ctx.lineCap = 'round';
   for (let i = cx0; i <= cx1; i++) for (let j = cy0; j <= cy1; j++) {
-    const h = hash2(i, j, 7);
-    if (h > 0.42) continue;
-    const s = Math.sin(T * 0.75 + hash2(i, j, 3) * TAU);
-    if (s < 0.55) continue;
-    const a = (s - 0.55) / 0.45;
-    const x = i * C + hash2(i, j, 1) * C, y = j * C + hash2(i, j, 2) * C, len = 6 + hash2(i, j, 4) * 12;
-    ctx.globalAlpha = a * 0.55; ctx.lineWidth = 1.4;
-    ctx.beginPath(); ctx.moveTo(x - px * len, y - py * len); ctx.quadraticCurveTo(x + Math.cos(windTo) * 2, y + Math.sin(windTo) * 2, x + px * len, y + py * len); ctx.stroke();
-    ctx.globalAlpha = a * 0.25; ctx.lineWidth = 0.8;
-    ctx.beginPath(); ctx.moveTo(x - px * len * 0.6 - Math.cos(windTo) * 4, y - py * len * 0.6 - Math.sin(windTo) * 4); ctx.lineTo(x + px * len * 0.5 - Math.cos(windTo) * 4, y + py * len * 0.5 - Math.sin(windTo) * 4); ctx.stroke();
+    if (hash2(i, j, 7) > dens) continue;
+    const per = 3.5 + hash2(i, j, 5) * 3.5;
+    const u = (T / per + hash2(i, j, 3)) % 1;
+    const e = Math.sin(Math.PI * u), a = e * e;
+    if (a < 0.06) continue;
+    const trav = u * (16 + 22 * k);
+    const x = i * C + hash2(i, j, 1) * C + wx * trav, y = j * C + hash2(i, j, 2) * C + wy * trav;
+    const len = (6 + hash2(i, j, 4) * 12) * lenK;
+    ctx.globalAlpha = a * (0.35 + 0.35 * k); ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(x - ax * len, y - ay * len); ctx.quadraticCurveTo(x + wx * 2, y + wy * 2, x + ax * len, y + ay * len); ctx.stroke();
+    ctx.globalAlpha = a * (0.15 + 0.2 * k); ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.moveTo(x - ax * len * 0.6 - wx * 4, y - ay * len * 0.6 - wy * 4); ctx.lineTo(x + ax * len * 0.5 - wx * 4, y + ay * len * 0.5 - wy * 4); ctx.stroke();
   }
   ctx.globalAlpha = 1;
 }
@@ -1152,26 +1876,27 @@ function seaLayer(pat, size, dx, dy, alpha) {
   ctx.restore();
 }
 
+// Kelvin-style wake: the V widens in proportion to the ship's speed and lasts longer when she is fast.
 function drawWakes() {
   ctx.lineCap = 'round';
   for (const s of ships) {
     const tr = s.trail; if (tr.length < 2) continue;
-    const B = s.c.B;
+    const B = s.c.B, spread = 0.16 * s.c.maxSpeed;
     // churned centre
     ctx.strokeStyle = '#cfe6ee';
     for (let i = 1; i < tr.length; i++) {
-      const a = tr[i - 1], b = tr[i];
-      ctx.globalAlpha = 0.10 * (1 - b.age / 3.4) * b.sp; ctx.lineWidth = B * 0.5 + b.age * 6;
+      const a = tr[i - 1], b = tr[i], fade = Math.max(0, 1 - b.age / b.life);
+      ctx.globalAlpha = 0.12 * fade * Math.min(1, b.sp); ctx.lineWidth = B * 0.5 + b.age * 6;
       ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
     }
     // two diverging foam lines
     for (const side of [-1, 1]) {
       for (let i = 1; i < tr.length; i++) {
-        const a = tr[i - 1], b = tr[i];
-        const sa = B * 0.42 + a.age * 16, sb = B * 0.42 + b.age * 16;
+        const a = tr[i - 1], b = tr[i], fade = Math.max(0, 1 - b.age / b.life);
+        const sa = B * 0.42 + a.age * spread * Math.max(0.3, a.sp), sb = B * 0.42 + b.age * spread * Math.max(0.3, b.sp);
         const ax = a.x - Math.sin(a.h) * side * sa, ay = a.y + Math.cos(a.h) * side * sa;
         const bx = b.x - Math.sin(b.h) * side * sb, by = b.y + Math.cos(b.h) * side * sb;
-        ctx.globalAlpha = 0.45 * (1 - b.age / 3.4) * Math.min(1, b.sp * 1.4); ctx.lineWidth = 1.2 + b.age * 0.9;
+        ctx.globalAlpha = 0.45 * fade * Math.min(1, b.sp * 1.4); ctx.lineWidth = 1.2 + b.age * 0.9;
         ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
       }
     }
@@ -1206,13 +1931,13 @@ function nearestEnemyDist() {
   return best;
 }
 function enemyInArc(side) {
-  const base = player.heading + side * Math.PI / 2, R = player.c.range;
+  const base = player.heading + side * Math.PI / 2, R = player.c.range, arc = player.c.arc;
   for (const s of ships) {
     if (s.isPlayer || s.sinking) continue;
     const dx = s.x - player.x, dy = s.y - player.y, d = Math.hypot(dx, dy);
     if (d > R) continue;
     const slack = Math.atan2(s.c.L * 0.3, d);
-    if (Math.abs(angNorm(Math.atan2(dy, dx) - base)) < ARC + slack) return true;
+    if (Math.abs(angNorm(Math.atan2(dy, dx) - base)) < arc + slack) return true;
   }
   return false;
 }
@@ -1221,7 +1946,7 @@ function drawArcs() {
   const want = (nearestEnemyDist() < p.c.range * 1.6 || T - lastFire < 2.5) ? 1 : 0;
   arcVis += (want - arcVis) * Math.min(1, 4 * (1 / 60));
   if (arcVis < 0.02) return;
-  const R = p.c.range;
+  const R = p.c.range, ARC = p.c.arc;
   for (const side of [-1, 1]) {
     const base = p.heading + side * Math.PI / 2;
     const loaded = p.reload[side] <= 0 && p.repairing <= 0;
@@ -1246,6 +1971,32 @@ function drawArcs() {
     ctx.beginPath(); ctx.arc(p.x, p.y, R, base - ARC, base - ARC + 2 * ARC * prog); ctx.stroke();
   }
 }
+// Missile-age ships have no firing arc: show gun and missile range rings and bracket the nearest hostile.
+function drawRanges() {
+  const p = player; if (!p || p.sinking) return;
+  const want = (nearestEnemyDist() < p.c.missile.range * 1.15 || T - lastFire < 2.5) ? 1 : 0;
+  arcVis += (want - arcVis) * Math.min(1, 4 * (1 / 60));
+  if (arcVis < 0.02) return;
+  ctx.setLineDash([10, 14]); ctx.lineWidth = 1.2 / ZOOM;
+  ctx.strokeStyle = `rgba(214,190,140,${0.42 * arcVis})`;
+  ctx.beginPath(); ctx.arc(p.x, p.y, p.c.gun.range, 0, TAU); ctx.stroke();
+  ctx.strokeStyle = `rgba(150,200,230,${0.26 * arcVis})`;
+  ctx.beginPath(); ctx.arc(p.x, p.y, p.c.missile.range, 0, TAU); ctx.stroke();
+  ctx.setLineDash([]);
+  const t = nearestHostile(p, p.c.missile.range);
+  if (t) {
+    const inGun = Math.hypot(t.x - p.x, t.y - p.y) < p.c.gun.range;
+    const r = t.c.L * 0.42 + 8, q = r * 0.4;
+    ctx.strokeStyle = inGun ? `rgba(240,195,90,${0.9 * arcVis})` : `rgba(150,200,230,${0.8 * arcVis})`;
+    ctx.lineWidth = 1.8 / ZOOM;
+    ctx.beginPath();
+    for (const sx of [-1, 1]) for (const sy of [-1, 1]) {
+      const cx = t.x + sx * r, cy = t.y + sy * r;
+      ctx.moveTo(cx - sx * q, cy); ctx.lineTo(cx, cy); ctx.lineTo(cx, cy - sy * q);
+    }
+    ctx.stroke();
+  }
+}
 
 const sailColCache = {};
 function sailColor(dmg, k) {
@@ -1261,7 +2012,7 @@ function sailShape(S, d) {
 }
 
 function drawShip(s) {
-  const c = s.c, L = c.L, B = c.B, spr = SPRITES[s.kind];
+  const c = s.c, L = c.L, B = c.B, spr = getSprite(s);
   const k = s.sinking ? clamp(s.sinkT, 0, 1) : 0;
   ctx.save();
   ctx.translate(s.x, s.y);
@@ -1272,11 +2023,12 @@ function drawShip(s) {
     ctx.restore();
   }
   ctx.rotate(s.heading + k * 0.35 * s.sinkDir);
-  // bow wave
+  // bow wave: grows with speed
   if (!s.sinking && s.speed > 8) {
-    const f = s.speed / c.maxSpeed;
-    ctx.globalAlpha = 0.55 * f; ctx.strokeStyle = '#e6f2f5'; ctx.lineWidth = 1.6;
-    ctx.beginPath(); ctx.moveTo(L * 0.18, -B * 0.62); ctx.quadraticCurveTo(L * 0.5, -B * 0.42, L * 0.53, 0); ctx.quadraticCurveTo(L * 0.5, B * 0.42, L * 0.18, B * 0.62); ctx.stroke();
+    const f = clamp(s.speed / c.maxSpeed, 0, 1);
+    ctx.globalAlpha = 0.25 + 0.5 * f; ctx.strokeStyle = '#e6f2f5'; ctx.lineWidth = 1.0 + 1.7 * f;
+    const sw = B * (0.42 + 0.22 * f), tip = L * (0.51 + 0.07 * f);
+    ctx.beginPath(); ctx.moveTo(L * 0.18, -B * 0.62); ctx.quadraticCurveTo(L * 0.5, -sw, tip, 0); ctx.quadraticCurveTo(L * 0.5, sw, L * 0.18, B * 0.62); ctx.stroke();
     ctx.globalAlpha = 1;
   }
   if (k > 0) { ctx.scale(1 - 0.12 * k, 1 - 0.5 * k); ctx.translate(0, s.sinkDir * k * B * 0.25); ctx.globalAlpha = Math.max(0, 1 - k * k); }
@@ -1291,15 +2043,40 @@ function drawShip(s) {
     ctx.strokeStyle = '#d8b88a'; ctx.lineWidth = 0.4;
     ctx.beginPath(); ctx.moveTo(d.x - d.r * 1.3, d.y); ctx.lineTo(d.x - d.r * 0.5, d.y + d.r * 0.3); ctx.moveTo(d.x + d.r * 0.4, d.y - d.r * 1.1); ctx.lineTo(d.x + d.r * 1.2, d.y - d.r * 0.4); ctx.stroke();
   }
-  drawRig(s, k);
+  if (c.rig === 'sail') drawRig(s, k); else drawDeckGear(s);
   ctx.globalAlpha = ga;
   drawFlag(s);
   if (k > 0) {
     ctx.globalAlpha = Math.min(0.85, k * 1.1);
-    ctx.fillStyle = '#0d3651';
+    ctx.fillStyle = seaBase;
     ctx.beginPath(); ctx.ellipse(0, 0, L * 0.62, B * 0.8, 0, 0, TAU); ctx.fill();
   }
   ctx.restore();
+}
+
+// Turrets and gun mounts train on their target, so they are drawn live over the sprite.
+function drawDeckGear(s) {
+  const c = s.c, L = c.L, B = c.B;
+  const pos = c.mode === 'modern' ? c.gun.mounts : (c.turrets ? c.tpos : null);
+  if (!pos) return;
+  for (const f of pos) {
+    ctx.save(); ctx.translate(L * f, 0); ctx.rotate(s.tAng);
+    if (c.mode === 'modern') {
+      const r = Math.max(3.2, B * 0.17), heavy = c.gun.dmg > 15;
+      ctx.fillStyle = '#9aa4aa'; ctx.strokeStyle = 'rgba(15,22,26,0.8)'; ctx.lineWidth = 0.6;
+      ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#2d3438';
+      if (heavy) { ctx.fillRect(0, -1.6, L * 0.09, 1.2); ctx.fillRect(0, 0.4, L * 0.09, 1.2); }
+      else ctx.fillRect(0, -0.8, L * 0.075, 1.6);
+    } else {
+      const r = B * 0.2;
+      ctx.fillStyle = '#5b646a'; ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.lineWidth = 0.7;
+      ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#1f2326';
+      ctx.fillRect(0, -r * 0.55, L * 0.10, r * 0.4); ctx.fillRect(0, r * 0.15, L * 0.10, r * 0.4);
+    }
+    ctx.restore();
+  }
 }
 
 function drawRig(s, k) {
@@ -1311,7 +2088,8 @@ function drawRig(s, k) {
   const brace = clamp(Math.sin(rel) * 0.45, -0.5, 0.5);
   const dmg = 1 - s.hp / s.maxHp;
   const colA = sailColor(dmg, 0), colB = sailColor(dmg, 1);
-  const d = (1.4 + 6.5 * fill) * (aback ? -0.55 : 1);
+  // a stiffer breeze fills the canvas harder
+  const d = (1.4 + 6.5 * fill * (0.8 + 0.3 * seaK())) * (aback ? -0.55 : 1);
   ctx.lineJoin = 'round';
   // headsail (jib) and spanker
   if (fill > 0.05) {
@@ -1351,23 +2129,54 @@ function drawRig(s, k) {
 }
 
 function drawFlag(s) {
-  const L = s.c.L;
+  const c = s.c, L = c.L;
+  const flag = s.isPlayer ? c.flag : (c.eflag || c.flag);
   const rel = angNorm(windTo - s.heading);
+  // a stronger wind snaps the flag harder
+  const flap = 1 + 0.06 * windKn;
   ctx.save(); ctx.translate(-L * 0.5 - 1, 0); ctx.rotate(rel);
-  const w = 13, h = 8, f1 = Math.sin(T * 9 + s.id) * 1.3, f2 = Math.sin(T * 9 + s.id + 1.6) * 1.3;
+  const w = 13, h = 8, f1 = Math.sin(T * (7 + windKn * 0.18) + s.id) * 1.3 * flap, f2 = Math.sin(T * (7 + windKn * 0.18) + s.id + 1.6) * 1.3 * flap;
   ctx.beginPath();
   ctx.moveTo(0, -h / 2); ctx.quadraticCurveTo(w * 0.5, -h / 2 + f1, w, -h / 2 + f2 * 0.6);
   ctx.lineTo(w, h / 2 + f2 * 0.6); ctx.quadraticCurveTo(w * 0.5, h / 2 + f1, 0, h / 2); ctx.closePath();
   ctx.save(); ctx.clip();
-  if (s.c.flag === 'GB') {
-    ctx.fillStyle = '#b3262c'; ctx.fillRect(0, -h, w + 2, h * 2);
+  const union = () => {
     ctx.fillStyle = '#1f2f6b'; ctx.fillRect(0, -h / 2, 5.6, 4);
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.moveTo(2.8, -h / 2); ctx.lineTo(2.8, -h / 2 + 4); ctx.moveTo(0, -h / 2 + 2); ctx.lineTo(5.6, -h / 2 + 2); ctx.moveTo(0, -h / 2); ctx.lineTo(5.6, -h / 2 + 4); ctx.moveTo(5.6, -h / 2); ctx.lineTo(0, -h / 2 + 4); ctx.stroke();
     ctx.strokeStyle = '#c8102e'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(2.8, -h / 2); ctx.lineTo(2.8, -h / 2 + 4); ctx.moveTo(0, -h / 2 + 2); ctx.lineTo(5.6, -h / 2 + 2); ctx.stroke();
-  } else {
-    ctx.fillStyle = '#1d3f8f'; ctx.fillRect(0, -h, w / 3, h * 2);
-    ctx.fillStyle = '#f4f1ea'; ctx.fillRect(w / 3, -h, w / 3, h * 2);
-    ctx.fillStyle = '#c8202c'; ctx.fillRect(w * 2 / 3, -h, w / 3 + 2, h * 2);
+  };
+  switch (flag) {
+    case 'FR':
+      ctx.fillStyle = '#1d3f8f'; ctx.fillRect(0, -h, w / 3, h * 2);
+      ctx.fillStyle = '#f4f1ea'; ctx.fillRect(w / 3, -h, w / 3, h * 2);
+      ctx.fillStyle = '#c8202c'; ctx.fillRect(w * 2 / 3, -h, w / 3 + 2, h * 2);
+      break;
+    case 'US':
+      for (let i = 0; i < 7; i++) { ctx.fillStyle = i % 2 ? '#f4f1ea' : '#b3262c'; ctx.fillRect(0, -h / 2 + i * h / 7, w + 2, h / 7 + 0.2); }
+      ctx.fillStyle = '#1f2f6b'; ctx.fillRect(0, -h / 2, w * 0.45, h * 4 / 7);
+      break;
+    case 'UK':
+      ctx.fillStyle = '#f4f1ea'; ctx.fillRect(0, -h, w + 2, h * 2);
+      ctx.fillStyle = '#c8102e'; ctx.fillRect(0, -0.9, w + 2, 1.8); ctx.fillRect(w * 0.32 - 0.9, -h, 1.8, h * 2);
+      union();
+      break;
+    case 'ROK':
+      ctx.fillStyle = '#f4f1ea'; ctx.fillRect(0, -h, w + 2, h * 2);
+      ctx.fillStyle = '#c8102e'; ctx.beginPath(); ctx.arc(w / 2, 0, 2.2, Math.PI, 0); ctx.fill();
+      ctx.fillStyle = '#1f3f8f'; ctx.beginPath(); ctx.arc(w / 2, 0, 2.2, 0, Math.PI); ctx.fill();
+      break;
+    case 'PRC':
+      ctx.fillStyle = '#c8202c'; ctx.fillRect(0, -h, w + 2, h * 2);
+      ctx.fillStyle = '#f2c230'; ctx.beginPath(); ctx.arc(2.6, -h / 2 + 1.8, 1.3, 0, TAU); ctx.fill();
+      ctx.fillRect(5, -h / 2 + 0.6, 1, 1); ctx.fillRect(5.6, -h / 2 + 2, 1, 1);
+      break;
+    case 'OPFOR':
+      ctx.fillStyle = '#26262b'; ctx.fillRect(0, -h, w + 2, h * 2);
+      ctx.strokeStyle = '#b8322a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, h / 2); ctx.lineTo(w, -h / 2); ctx.stroke();
+      break;
+    default: // GB red ensign
+      ctx.fillStyle = '#b3262c'; ctx.fillRect(0, -h, w + 2, h * 2);
+      union();
   }
   ctx.restore();
   ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 0.4; ctx.stroke();
@@ -1376,10 +2185,47 @@ function drawFlag(s) {
 
 function drawBalls() {
   for (const b of balls) {
+    if (b.kind === 'shell') {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.strokeStyle = '#ffc874'; ctx.lineWidth = 1.5 / ZOOM; ctx.lineCap = 'round';
+      ctx.globalAlpha = 0.9;
+      ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x - b.vx * 0.022, b.y - b.vy * 0.022); ctx.stroke();
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+      continue;
+    }
     const u = b.t / b.life, h = 4 * 13 * u * (1 - u);
     ctx.fillStyle = 'rgba(2,14,24,0.35)'; ctx.beginPath(); ctx.arc(b.x, b.y, 1.6, 0, TAU); ctx.fill();
     ctx.fillStyle = '#141414'; ctx.beginPath(); ctx.arc(b.x - h * 0.3, b.y - h, 2, 0, TAU); ctx.fill();
   }
+}
+function drawMissiles() {
+  for (const m of missiles) {
+    ctx.save(); ctx.translate(m.x, m.y); ctx.rotate(m.h);
+    ctx.fillStyle = '#f6f3ec'; ctx.fillRect(-4.5, -1.0, 9, 2);
+    ctx.fillStyle = '#c23b2a'; ctx.fillRect(2.5, -1.0, 2, 2);
+    ctx.restore();
+    if (m.faction === 1 && m.tgt === player && !player.sinking) {
+      ctx.strokeStyle = 'rgba(224,80,60,0.95)'; ctx.lineWidth = 1.5 / ZOOM;
+      ctx.beginPath(); ctx.arc(m.x, m.y, 11 + 3 * Math.sin(T * 14), 0, TAU); ctx.stroke();
+    }
+  }
+  if (missiles.length) {
+    ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = '#ffb050'; ctx.globalAlpha = 0.9;
+    for (const m of missiles) { ctx.beginPath(); ctx.arc(m.x - Math.cos(m.h) * 5, m.y - Math.sin(m.h) * 5, 2.6, 0, TAU); ctx.fill(); }
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  }
+}
+function drawTracers() {
+  if (!tracers.length) return;
+  ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+  for (const t of tracers) {
+    const u = t.t / t.life;
+    ctx.globalAlpha = 1 - u;
+    if (t.kind === 'ciws') { ctx.strokeStyle = '#ffd27a'; ctx.lineWidth = 2 / ZOOM; ctx.setLineDash([5, 4]); }
+    else { ctx.strokeStyle = '#cfe8ff'; ctx.lineWidth = 1.4 / ZOOM; ctx.setLineDash([]); }
+    ctx.beginPath(); ctx.moveTo(t.x0, t.y0); ctx.lineTo(t.x1, t.y1); ctx.stroke();
+  }
+  ctx.setLineDash([]); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
 }
 
 function drawParticles() {
@@ -1446,7 +2292,7 @@ function drawHealthBars() {
   for (const s of ships) {
     if (s.isPlayer || s.sinking || s.hp >= s.maxHp) continue;
     const [x, y] = toScreen(s.x, s.y);
-    const by = y - (s.c.L * 0.5 + 10) * ZOOM, w = 48, f = s.hp / s.maxHp;
+    const by = y - (s.c.L * 0.5 + 10) * ZOOM, w = Math.round(clamp(s.c.L * ZOOM * 0.43, 30, 90)), f = s.hp / s.maxHp;
     ctx.fillStyle = 'rgba(6,18,28,0.8)'; ctx.fillRect(x - w / 2 - 1, by - 1, w + 2, 6);
     ctx.fillStyle = f > 0.5 ? '#86c3a2' : f > 0.25 ? '#d9a645' : '#d2553c';
     ctx.fillRect(x - w / 2, by, w * f, 4);
@@ -1481,9 +2327,11 @@ function drawCompass() {
   g.clearRect(0, 0, S, S);
   g.save(); g.translate(cx, cy);
   g.fillStyle = 'rgba(8,30,46,0.9)'; g.beginPath(); g.arc(0, 0, R, 0, TAU); g.fill();
-  // no-go zone around the wind
-  g.fillStyle = 'rgba(210,85,60,0.22)';
-  g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, R - 6, windFrom - 38 * Math.PI / 180, windFrom + 38 * Math.PI / 180); g.closePath(); g.fill();
+  // no-go zone around the wind, for ships that sail
+  if (player && player.c.windDep > 0.5) {
+    g.fillStyle = 'rgba(210,85,60,0.22)';
+    g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, R - 6, windFrom - 38 * Math.PI / 180, windFrom + 38 * Math.PI / 180); g.closePath(); g.fill();
+  }
   g.strokeStyle = '#cfa54b'; g.lineWidth = 3; g.beginPath(); g.arc(0, 0, R, 0, TAU); g.stroke();
   g.lineWidth = 1; g.strokeStyle = 'rgba(207,165,75,0.5)'; g.beginPath(); g.arc(0, 0, R - 26, 0, TAU); g.stroke();
   for (let i = 0; i < 32; i++) {
@@ -1493,14 +2341,18 @@ function drawCompass() {
   }
   g.fillStyle = '#efe6d2'; g.font = "30px 'IM Fell English SC', Georgia, serif"; g.textAlign = 'center'; g.textBaseline = 'middle';
   [['N', -Math.PI / 2], ['E', 0], ['S', Math.PI / 2], ['W', Math.PI]].forEach(([l, a]) => { g.fillStyle = l === 'N' ? '#cfa54b' : '#efe6d2'; g.fillText(l, Math.cos(a) * (R - 42), Math.sin(a) * (R - 42)); });
-  // wind arrow: from the rim toward the centre
-  const wa = windFrom;
-  g.strokeStyle = '#bfe3f0'; g.fillStyle = '#bfe3f0'; g.lineWidth = 4;
-  const r0 = R + 2, r1 = R - 70;
+  // wind arrow: from the rim toward the centre; the shaft lengthens and thickens with the wind speed
+  const wa = windFrom, wk = clamp(windKn / 30, 0.1, 1);
+  g.strokeStyle = '#bfe3f0'; g.fillStyle = '#bfe3f0'; g.lineWidth = 3 + 3 * wk;
+  const r0 = R + 2, r1 = R - 50 - 40 * wk;
   g.beginPath(); g.moveTo(Math.cos(wa) * r0, Math.sin(wa) * r0); g.lineTo(Math.cos(wa) * (r1 + 10), Math.sin(wa) * (r1 + 10)); g.stroke();
   g.save(); g.translate(Math.cos(wa) * r1, Math.sin(wa) * r1); g.rotate(wa + Math.PI);
   g.beginPath(); g.moveTo(14, 0); g.lineTo(-6, -10); g.lineTo(-6, 10); g.closePath(); g.fill(); g.restore();
-  for (const o of [-1, 1]) { const fa = wa + o * 0.07; g.lineWidth = 2.5; g.beginPath(); g.moveTo(Math.cos(fa) * (R + 2), Math.sin(fa) * (R + 2)); g.lineTo(Math.cos(wa) * (R - 16), Math.sin(wa) * (R - 16)); g.stroke(); }
+  const feathers = 1 + Math.round(wk * 3);
+  for (let n = 0; n < feathers; n++) for (const o of [-1, 1]) {
+    const fa = wa + o * 0.07, rr = R - 16 - n * 11;
+    g.lineWidth = 2.5; g.beginPath(); g.moveTo(Math.cos(fa) * (rr + 18), Math.sin(fa) * (rr + 18)); g.lineTo(Math.cos(wa) * rr, Math.sin(wa) * rr); g.stroke();
+  }
   // ship needle
   if (player) {
     g.rotate(player.heading);
@@ -1518,8 +2370,16 @@ const hud = {
   hpNum: $('hpNum'), hpBar: $('hpBar'), sail: $('sailTxt'), spd: $('spdTxt'), pos: $('posTxt'),
   wave: $('waveTxt'), left: $('leftTxt'), sunk: $('sunkTxt'), score: $('scoreTxt'), wind: $('windTxt'),
   gPort: $('gPort'), gStar: $('gStar'), gRep: $('gRep'),
+  tag: $('shipTag'), name: $('shipName'), sailLbl: $('sailLbl'), lblQ: $('lblQ'), lblE: $('lblE'), lblR: $('lblR'), threat: $('threat'),
 };
 let hudT = 0;
+function applyShipHud(c) {
+  hud.tag.textContent = c.tag; hud.name.textContent = c.name;
+  hud.sailLbl.textContent = c.rig === 'sail' ? 'Sail' : 'Engines';
+  hud.lblQ.textContent = c.mode === 'modern' ? 'Guns' : c.turrets ? 'Port turrets' : 'Port guns';
+  hud.lblE.textContent = c.mode === 'modern' ? 'Missiles' : c.turrets ? 'Stbd turrets' : 'Starboard';
+  hud.lblR.textContent = c.era === 'sail' ? 'Repair' : 'Damage control';
+}
 function setGauge(el, frac, state, cls) {
   el.querySelector('.bar i').style.width = (clamp(frac, 0, 1) * 100).toFixed(1) + '%';
   el.querySelector('.state').textContent = state;
@@ -1527,30 +2387,50 @@ function setGauge(el, frac, state, cls) {
 }
 function updateHud(dt) {
   hudT -= dt; if (hudT > 0) return; hudT = 0.1;
-  const p = player;
+  const p = player, c = p.c;
   const hp = Math.ceil(p.hp), f = p.hp / p.maxHp;
   hud.hpNum.textContent = `${hp} / ${p.maxHp}`;
   hud.hpBar.style.width = (f * 100).toFixed(1) + '%';
   hud.hpBar.style.background = f > 0.5 ? 'var(--green)' : f > 0.25 ? '#d9a645' : 'var(--red)';
-  hud.sail.textContent = SAILS[p.sailIdx].name;
-  hud.spd.textContent = (p.speed / 10).toFixed(1) + ' kn';
-  const off = p.offDeg || 90;
-  hud.pos.textContent = `${pointOfSailName(off)} · ${Math.round(sailEfficiency(off) * 100)}% of best speed`;
+  hud.sail.textContent = THROTTLES[c.era][p.sailIdx].name;
+  hud.spd.textContent = (p.speed / c.maxSpeed * c.kn).toFixed(1) + ' kn';
+  if (c.windDep > 0.5) {
+    const off = p.offDeg || 90;
+    hud.pos.textContent = `${pointOfSailName(off)} · ${Math.round(sailEfficiency(off) * 100)}% of best speed`;
+  } else {
+    hud.pos.textContent = `Engines ${Math.round(p.sail * 100)}% · ${windName(windKn)}`;
+  }
   hud.wave.textContent = Math.max(1, wave);
   hud.left.textContent = ships.filter(s => !s.isPlayer && !s.sinking).length + pending.length;
   hud.sunk.textContent = sunk;
   hud.score.textContent = score.toLocaleString('en-GB');
   const hd = toCompassDeg(p.heading), wd = toCompassDeg(windFrom);
-  hud.wind.innerHTML = `Heading ${String(Math.round(hd) % 360).padStart(3, '0')}° ${compassName(hd)}<br>Wind from ${compassName(wd)}`;
-  for (const [el, side] of [[hud.gPort, -1], [hud.gStar, 1]]) {
-    const r = p.reload[side];
-    if (p.repairing > 0) setGauge(el, r > 0 ? 1 - r / p.c.reload : 1, 'Silent: repairing', 'off');
-    else if (r > 0) setGauge(el, 1 - r / p.c.reload, `Reloading ${r.toFixed(1)}s`, 'busy');
-    else setGauge(el, 1, 'Ready', 'ready');
+  hud.wind.innerHTML = `Heading ${String(Math.round(hd) % 360).padStart(3, '0')}° ${compassName(hd)}<br>Wind from ${compassName(wd)} · ${Math.round(windKn)} kn<br>${windName(windKn)}`;
+  if (isModern(p)) {
+    const r = p.reload[-1];
+    if (p.repairing > 0) setGauge(hud.gPort, r > 0 ? 1 - r / c.gun.reload : 1, 'Silent: repairing', 'off');
+    else if (r > 0) setGauge(hud.gPort, 1 - r / c.gun.reload, `Reloading ${r.toFixed(1)}s`, 'busy');
+    else setGauge(hud.gPort, 1, nearestHostile(p, c.gun.range) ? 'Ready' : 'Ready · no target', 'ready');
+    const m = p.reload[1], st = p.missiles;
+    if (st <= 0) setGauge(hud.gStar, 0, 'Magazine empty', 'off');
+    else if (m > 0) setGauge(hud.gStar, 1 - m / c.missile.reload, `Reload ${Math.ceil(m)}s · ${st} left`, 'busy');
+    else setGauge(hud.gStar, 1, `Ready · ${st} left`, 'ready');
+  } else {
+    for (const [el, side] of [[hud.gPort, -1], [hud.gStar, 1]]) {
+      const r = p.reload[side];
+      if (p.repairing > 0) setGauge(el, r > 0 ? 1 - r / c.reload : 1, 'Silent: repairing', 'off');
+      else if (r > 0) setGauge(el, 1 - r / c.reload, `Reloading ${r.toFixed(1)}s`, 'busy');
+      else setGauge(el, 1, 'Ready', 'ready');
+    }
   }
   if (p.repairing > 0) setGauge(hud.gRep, 1 - p.repairing / REPAIR_TIME, `Repairing ${p.repairing.toFixed(1)}s`, 'busy');
   else if (p.repairCd > 0) setGauge(hud.gRep, 1 - p.repairCd / REPAIR_CD, `Cooldown ${Math.ceil(p.repairCd)}s`, 'off');
   else setGauge(hud.gRep, 1, p.hp >= p.maxHp ? 'Hull sound' : 'Ready', 'ready');
+  // incoming missile warning
+  let inbound = 0;
+  for (const m of missiles) if (m.faction === 1 && m.tgt === p && !m.dead) inbound++;
+  hud.threat.hidden = inbound === 0 || p.sinking;
+  if (inbound) hud.threat.textContent = inbound === 1 ? 'MISSILE INBOUND' : `${inbound} MISSILES INBOUND`;
 }
 
 let bannerTimer = 0, toastTimer = 0;
@@ -1562,16 +2442,105 @@ function toast(msg) {
   const t = $('toast'); t.textContent = msg; t.classList.add('show');
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1500);
 }
-function show(id) { for (const s of ['menu', 'controls', 'pause', 'over']) $(s).hidden = s !== id; }
+function show(id) { for (const s of ['menu', 'era', 'ships', 'controls', 'pause', 'over']) $(s).hidden = s !== id; }
 
-function startGame() {
+/* ---------- Era and ship pickers ---------- */
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+const METERS = [['speed', 'Speed'], ['guns', 'Guns'], ['missiles', 'Missiles'], ['air', 'Air defence'], ['hull', 'Hull']];
+function pips(n) { const s = el('span', 'pips', '●'.repeat(n) + '○'.repeat(5 - n)); s.setAttribute('role', 'img'); s.setAttribute('aria-label', `${n} out of 5`); return s; }
+function renderEras() {
+  const box = $('eraPicks'); box.textContent = '';
+  ERAS.forEach((e, i) => {
+    const b = el('button', 'pcard'); b.type = 'button';
+    b.append(el('span', 'num lbl', String(i + 1)), el('span', 'yr', e.years), el('span', 'pn', e.name), el('span', 'pd', e.blurb));
+    const n = e.ships.length;
+    b.append(el('span', 'perk', n === 1 ? CLASSES[e.ships[0]].name : `${n} ships to command`));
+    b.addEventListener('click', () => chooseEra(e.id));
+    box.append(b);
+  });
+}
+function chooseEra(id) {
+  const e = ERAS.find(x => x.id === id);
+  if (e.ships.length === 1) { startGame(e.ships[0]); return; }
+  renderShips(e);
+  show('ships');
+  const first = document.querySelector('#shipPicks .pcard'); first && first.focus();
+}
+function renderShips(e) {
+  $('shipsEra').textContent = `${e.name} · ${e.years}`;
+  const box = $('shipPicks'); box.textContent = '';
+  e.ships.forEach((id, i) => {
+    const c = CLASSES[id], card = c.card;
+    const b = el('button', 'pcard'); b.type = 'button';
+    const best = bests[id] || 0;
+    b.append(el('span', best ? 'bst' : 'num lbl', best ? `Best ${best.toLocaleString('en-GB')}` : String(i + 1)));
+    b.append(el('span', 'yr', card.year), el('span', 'pn', c.name), el('span', 'pc', card.cls), el('span', 'pd', card.blurb), el('span', 'perk', card.perk));
+    const mt = el('div', 'mt');
+    for (const [k, label] of METERS) if (card.stats[k] != null) mt.append(el('span', null, label), pips(card.stats[k]));
+    b.append(mt);
+    b.addEventListener('click', () => startGame(id));
+    box.append(b);
+  });
+}
+
+/* ---------- Controls, per era ---------- */
+function renderControls() {
+  const c = CLASSES[currentShip], modern = c.mode === 'modern', sail = c.rig === 'sail';
+  $('ctlFor').textContent = `Showing orders for ${c.name}. Pick another ship from Start Game.`;
+  const rows = [
+    [['W'], sail ? 'Set more sail' : 'Engines up'],
+    [['S'], sail ? 'Take in sail' : 'Engines down'],
+    [['A', 'D'], 'Turn to port / starboard'],
+  ];
+  if (modern) rows.push([['Q'], 'Fire the guns at the nearest hostile, any bearing'], [['E'], 'Launch an anti-ship missile salvo'], [['Space'], 'Fire everything that is ready']);
+  else rows.push([['Q'], 'Fire the port ' + (c.turrets ? 'turrets' : 'broadside') + ' (left)'], [['E'], 'Fire the starboard ' + (c.turrets ? 'turrets' : 'broadside') + ' (right)'], [['Space'], 'Fire every loaded ' + (c.turrets ? 'battery' : 'broadside')]);
+  rows.push([['R'], sail ? 'Repair the hull' : 'Damage control: repair the hull'], [['Esc'], 'Pause'], [['F', 'M'], 'Fullscreen · music']);
+  const o = $('orders'); o.textContent = '';
+  for (const [ks, text] of rows) {
+    const k = el('span', 'k'); ks.forEach(x => k.append(el('kbd', null, x)));
+    o.append(k, el('span', null, text));
+  }
+  let tips;
+  if (sail) tips = [
+    'Your guns fire sideways. Turn until the enemy sits inside the gold arc, then fire.',
+    'Sailing straight into the wind stalls the ship. She is fastest with the wind across her side, and a fresher breeze drives her harder.',
+    `A broadside takes ${c.reload} seconds to reload. Keep sailing so the enemy has to chase you.`,
+    'Repairs take 6 seconds. The ship slows and the guns stay silent until they finish.',
+  ];
+  else if (!modern) tips = [
+    'Steam frees you from the wind. Full ahead is the same speed on every heading, and the wind only shapes the sea and the smoke.',
+    c.autoLay
+      ? 'Your turrets lay themselves on the nearest enemy inside the gold arc, with lead. Bring the target inside the arc and fire.'
+      : 'Your guns fire sideways. Turn until the enemy sits inside the gold arc, then fire.',
+    `A ${c.turrets ? 'salvo' : 'broadside'} takes ${c.reload} seconds to reload. Keep moving so the enemy has to come to you.`,
+    'Heavy ships turn slowly. Start the turn early and do not stop the engines in a fight.',
+  ];
+  else tips = [
+    `Q fires the guns at the nearest hostile inside gun range, in any direction. Rounds are laid for you.`,
+    'E launches missiles at the nearest hostiles. The magazine is limited: open the fight with them, finish with guns. Each defeated wave resupplies half the magazine.',
+    'Air defence works on its own. SAMs engage at long range and close-in guns last. Red rings mark missiles that are coming for you.',
+    'Faster missiles spend less time in a defender’s envelope, so fewer are shot down. Stealth hulls make some of them lose their lock altogether.',
+  ];
+  const t = $('tips'); t.textContent = '';
+  tips.forEach(x => t.append(el('li', null, x)));
+}
+
+/* ---------- Game flow ---------- */
+function startGame(id) {
+  if (typeof id === 'string' && CLASSES[id] && CLASSES[id].playable) currentShip = id;
+  const c = CLASSES[currentShip];
+  currentEra = c.era; seaBase = ERA_SEA[currentEra];
+  zoomMul = c.zoom; applyZoom();
+  try { localStorage.setItem('frigate-ship', currentShip); } catch (e) {}
   Snd.init();
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  snapWind();
   resetWorld();
+  applyShipHud(c);
   mode = 'play'; paused = false;
   show(null); $('hud').hidden = false;
   intermission = 3.2;   // short calm before the first sails appear
-  showBanner('HMS Resolute', 'Beat to quarters. Enemy sails expected.');
+  showBanner(c.name, c.startLine);
   hudT = 0;
 }
 function toMenu() {
@@ -1588,16 +2557,18 @@ function togglePause() {
 }
 function gameOver() {
   mode = 'over';
-  if (score > best) { best = score; try { localStorage.setItem('frigate-best', String(best)); } catch (e) {} }
+  if (score > (bests[currentShip] || 0)) { bests[currentShip] = score; try { localStorage.setItem(bestKey(currentShip), String(score)); } catch (e) {} }
+  $('oTitle').textContent = CLASSES[currentShip].lost;
   $('oScore').textContent = score.toLocaleString('en-GB');
   $('oSunk').textContent = sunk;
   $('oWaves').textContent = cleared;
-  $('oBest').textContent = best.toLocaleString('en-GB');
+  $('oBest').textContent = (bests[currentShip] || 0).toLocaleString('en-GB');
   show('over'); $('bAgain').focus();
 }
 function refreshBest() {
-  $('bestTxt').textContent = best > 0
-    ? `Best score on this browser: ${best.toLocaleString('en-GB')}. Needs a keyboard; best played full screen on a desktop.`
+  const top = Math.max(0, ...Object.values(bests));
+  $('bestTxt').textContent = top > 0
+    ? `Best score on this browser: ${top.toLocaleString('en-GB')}. Needs a keyboard; best played full screen on a desktop.`
     : 'Needs a keyboard. Best played full screen in a desktop browser.';
 }
 function toggleFullscreen() {
@@ -1609,27 +2580,39 @@ function toggleFullscreen() {
 function setMusic(v) { Snd.setMusic(v); $('optMusic').checked = v; $('qMusic').textContent = v ? 'Music on · M' : 'Music off · M'; }
 function setSound(v) { Snd.setOn(v); $('optSound').checked = v; if (mode === 'play') toast(v ? 'Sound on' : 'Sound off'); }
 
-$('bStart').addEventListener('click', startGame);
-$('bControls').addEventListener('click', () => { show('controls'); $('bBack').focus(); });
+$('bStart').addEventListener('click', () => { renderEras(); show('era'); const f = document.querySelector('#eraPicks .pcard'); f && f.focus(); });
+$('bEraBack').addEventListener('click', () => { show('menu'); $('bStart').focus(); });
+$('bShipsBack').addEventListener('click', () => { show('era'); const f = document.querySelector('#eraPicks .pcard'); f && f.focus(); });
+$('bControls').addEventListener('click', () => { renderControls(); show('controls'); $('bBack').focus(); });
 $('bBack').addEventListener('click', () => { show('menu'); $('bStart').focus(); });
 $('bResume').addEventListener('click', togglePause);
-$('bRestart').addEventListener('click', startGame);
+$('bRestart').addEventListener('click', () => startGame());
 $('bMenu').addEventListener('click', toMenu);
-$('bAgain').addEventListener('click', startGame);
+$('bAgain').addEventListener('click', () => startGame());
 $('bMenu2').addEventListener('click', toMenu);
 $('qPause').addEventListener('click', e => { e.currentTarget.blur(); togglePause(); });
 $('qFull').addEventListener('click', e => { e.currentTarget.blur(); toggleFullscreen(); });
 $('qMusic').addEventListener('click', e => { e.currentTarget.blur(); Snd.init(); setMusic(!Snd.musicOn); });
 $('optSound').addEventListener('change', e => { Snd.init(); setSound(e.target.checked); });
 $('optMusic').addEventListener('change', e => { Snd.init(); setMusic(e.target.checked); });
+$('optWind').value = windMode;
+$('optWind').addEventListener('change', e => {
+  windMode = e.target.value; snapWind();
+  try { localStorage.setItem('frigate-wind', windMode); } catch (err) {}
+  e.target.blur();
+});
 setMusic(false);
 
 /* =========================================================
    Main loop
    ========================================================= */
 resetWorld();
+applyShipHud(CLASSES[currentShip]);
 refreshBest();
-if (location.hash === '#play') startGame();
+if (location.hash.startsWith('#play')) {
+  const id = location.hash.split('=')[1];
+  startGame(id && CLASSES[id] && CLASSES[id].playable ? id : undefined);
+}
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;

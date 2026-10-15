@@ -108,6 +108,7 @@ select:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;font-size:18px;width:100%;text-align:left}
 .stats .v{text-align:right;font-weight:600}
 .stats .big{font-size:26px;color:var(--brass)}
+.pcard:disabled{opacity:.4;cursor:not-allowed}
 
 /* ---------- Era and ship pickers ---------- */
 .screen.pick{justify-content:center;align-items:flex-start;background:rgba(4,14,22,.9)}
@@ -220,10 +221,10 @@ select:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
 <div class="screen" id="menu">
   <div class="card">
     <h1><em>1750 to the present day</em>Frigate Commander</h1>
-    <p class="lede">Take command of a warship. Fight endless waves in Freeplay, or work through a campaign of objectives in Missions. Choose an era, choose a ship, and learn what wind, fog, steam and missiles do to the fight.</p>
+    <p class="lede">Take command of a warship. Fight endless waves in Freeplay, or work through the Campaign of objectives, one mission at a time. Choose an era, choose a ship, and learn what wind, fog, steam and missiles do to the fight.</p>
     <div class="btns">
       <button class="btn primary" id="bStart" type="button">Freeplay</button>
-      <button class="btn" id="bMissions" type="button">Missions</button>
+      <button class="btn" id="bMissions" type="button">Campaign</button>
       <button class="btn" id="bControls" type="button">Controls</button>
     </div>
     <div class="toggles">
@@ -261,6 +262,15 @@ select:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
   </div>
 </div>
 
+<!-- Campaign map -->
+<div class="screen pick" id="campaign" hidden>
+  <div class="card">
+    <div class="head"><div class="eyebrow" id="campEra">Campaign</div><h2 class="title">Choose your mission</h2></div>
+    <div class="picks" id="missionPicks"></div>
+    <div class="btns"><button class="btn" id="bCampBack" type="button">Back</button></div>
+  </div>
+</div>
+
 <!-- Controls -->
 <div class="screen" id="controls" hidden>
   <div class="card">
@@ -290,6 +300,25 @@ select:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
       <button class="btn primary" id="bResume" type="button">Resume</button>
       <button class="btn" id="bRestart" type="button">Restart</button>
       <button class="btn" id="bMenu" type="button">Main Menu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mission debrief -->
+<div class="screen center" id="debrief" hidden>
+  <div class="card">
+    <div class="eyebrow" id="dEye">Mission accomplished</div>
+    <h2 class="title" id="dTitle"></h2>
+    <p class="lede" id="dText"></p>
+    <div class="stats">
+      <span class="lbl">Score</span><span class="v big" id="dScore">0</span>
+      <span class="lbl">Enemy ships sunk</span><span class="v" id="dSunk">0</span>
+      <span class="lbl">Hull remaining</span><span class="v" id="dHull">0%</span>
+    </div>
+    <div class="btns">
+      <button class="btn primary" id="dNext" type="button">Next Mission</button>
+      <button class="btn" id="dRetry" type="button">Replay</button>
+      <button class="btn" id="dMap" type="button">Campaign Map</button>
     </div>
   </div>
 </div>
@@ -380,18 +409,44 @@ const DUEL = {
    her escort before the time runs out. */
 const MISSIONS = [
   { name: 'Hold the line', type: 'hold', secs: 120, every: 26, tier: 2,
-    brief: 'Fleets come in until the bell. Keep afloat for two minutes and clear each one.' },
+    brief: 'Fleets come in until the bell. Keep afloat for two minutes and clear each one.',
+    win: 'The line held. Two minutes of fleets, and the sea is quiet again.' },
   { name: 'Run down the runner', type: 'intercept', secs: 150, count: 1, lost: 'the runner got clear',
-    brief: 'A fast ship is breaking for open water. Sink her before she gets clear.' },
+    brief: 'A fast ship is breaking for open water. Sink her before she gets clear.',
+    win: 'The runner is on the bottom and her cargo never reached port.' },
   { name: 'Sink the flagship', type: 'flagship', secs: 240, escorts: 2, lost: 'the flagship got clear',
-    brief: 'The enemy flagship leads a small squadron. Sink her and her escort.' },
+    brief: 'The enemy flagship leads a small squadron. Sink her and her escort.',
+    win: 'The flagship is gone, and her squadron with her.' },
   { name: 'Hold longer', type: 'hold', secs: 180, every: 22, tier: 3,
-    brief: 'Bigger fleets and no respite. Three minutes, and clear each one.' },
+    brief: 'Bigger fleets and no respite. Three minutes, and clear each one.',
+    win: 'Three minutes under fire, and the line still stands.' },
   { name: 'Run down the pair', type: 'intercept', secs: 170, count: 2, lost: 'a runner got clear',
-    brief: 'Two fast ships are running for it, one to each side.' },
+    brief: 'Two fast ships are running for it, one to each side.',
+    win: 'Both runners are sunk. Nothing got clear.' },
   { name: 'The last squadron', type: 'flagship', secs: 260, escorts: 4, lost: 'the flagship got clear',
-    brief: 'The flagship has her escort. Take them down and the campaign is yours.' },
+    brief: 'The flagship has her escort. Take them down before she gets clear.',
+    win: 'The last squadron is sunk. Only the far coast remains.' },
+  { name: 'The relentless tide', type: 'hold', secs: 150, every: 20, tier: 4,
+    brief: 'The enemy has stopped waiting for orders. Fleets arrive every twenty seconds. Hold for two and a half minutes.',
+    win: 'Wave after wave broke on your line, and the line held.' },
+  { name: 'Three to the open sea', type: 'intercept', secs: 200, count: 3, lost: 'a runner got clear',
+    brief: 'Three fast ships are scattering for open water. Catch and sink all of them.',
+    win: 'All three runners are at the bottom. The coast is safe for now.' },
+  { name: 'Flagship at anchor', type: 'flagship', secs: 230, escorts: 3, lost: 'the flagship got clear',
+    brief: 'The enemy flagship has anchored under a fort with three escorts. Take her before the tide turns.',
+    win: 'The anchored flagship went down under the fort guns.' },
+  { name: 'The long watch', type: 'hold', secs: 240, every: 18, tier: 4,
+    brief: 'No respite and no bell until the end. Four minutes of fleets, and clear each one.',
+    win: 'Four minutes of relentless fire, and you are still afloat.' },
+  { name: 'Hunt the raiders', type: 'intercept', secs: 180, count: 4, lost: 'a raider got clear',
+    brief: 'Four raiders are running for three different havens. Stop them all before one gets clear.',
+    win: 'Four raiders sunk. The merchant lanes are open again.' },
+  { name: 'The final reckoning', type: 'flagship', secs: 300, escorts: 5, lost: 'the flagship got clear',
+    brief: 'The enemy admiral flies his flag in a squadron of five. Sink the admiral and the sea is yours.',
+    win: 'The admiral is gone, and the campaign is yours.' },
 ];
+const TYPE_LABEL = { hold: 'Defence', intercept: 'Intercept', flagship: 'Strike the flagship' };
+const CAMPAIGN_KEY = 'shipit-campaign';
 
 const CLASSES = {
   /* ---------- Age of Sail, 1750 to 1815 ---------- */
@@ -1053,7 +1108,7 @@ let windFrom = rand(-Math.PI, Math.PI), windTarget = windFrom, windTimer = 30, w
 let wave = 0, cleared = 0, score = 0, sunk = 0, pending = [], intermission = 0, overTimer = -1;
 let cam = { x: 0, y: 0 }, shake = 0, arcVis = 0, lastFire = -99, hurt = 0, lastIntercept = -99;
 let enemyAcc = 1, enemyReload = 1;
-let gameMode = 'free', mis = null, fogs = [], squall = { t: 0, next: 60 };
+let gameMode = 'free', mis = null, fogs = [], squall = { t: 0, next: 60 }, selectedMission = 0;
 let roundUses = { heli: 1, jam: 1 }, jamT = 0;   // missile-age once-a-round abilities; refilled each round
 let currentShip = 'resolute', currentEra = 'sail', seaBase = ERA_SEA.sail;
 const bests = {};
@@ -1232,6 +1287,7 @@ function startMission(i) {
   const def = MISSIONS[i], foes = CLASSES[currentShip].foes, duel = DUEL[currentEra], base = rand(-Math.PI, Math.PI);
   const spread = (k, n) => base + (k - (n - 1) / 2) * 0.6;
   mis = { idx: i, t: 0, spawnT: 1, targets: 0, done: false, next: 0 };
+  selectedMission = i;
   resetRound();
   pending = [];
   if (def.type === 'intercept') {
@@ -1243,13 +1299,11 @@ function startMission(i) {
   showBanner(`Mission ${i + 1} of ${MISSIONS.length}: ${def.name}`, def.brief);
 }
 function missionLogic(dt) {
+  if (mode !== 'play') return;
   const def = MISSIONS[mis.idx];
   if (mis.done) {
     mis.next -= dt;
-    if (mis.next <= 0) {
-      if (mis.idx + 1 < MISSIONS.length) startMission(mis.idx + 1);
-      else gameOver('The campaign is won. The sea is yours');
-    }
+    if (mis.next <= 0) showDebrief(true);
     return;
   }
   mis.t += dt;
@@ -1259,13 +1313,73 @@ function missionLogic(dt) {
   }
   const clear = pending.length === 0 && !ships.some(s => !s.isPlayer && !s.sinking);
   if (def.type === 'hold' ? mis.t >= def.secs && clear : mis.targets > 0 && clear) return completeMission();
-  if (def.type !== 'hold' && mis.t >= def.secs) gameOver(`Mission failed: ${def.lost}`);
+  if (def.type !== 'hold' && mis.t >= def.secs) return failMission(`Mission failed: ${def.lost}`);
 }
 function completeMission() {
   const def = MISSIONS[mis.idx], bonus = 400 + 200 * mis.idx, r = resupply(0.2, 0.6);
-  mis.done = true; mis.next = 6;
+  mis.done = true; mis.next = 3.5;
   cleared = mis.idx + 1; score += bonus;
+  saveCampaign(currentEra, mis.idx, score);
   showBanner(`${def.name} complete`, `+${bonus} · ${player.c.era === 'sail' ? 'carpenters patch' : 'repair crews restore'} ${r.heal} hull${r.extra}`);
+}
+function failMission(reason) {
+  mode = 'end';
+  showDebrief(false, reason);
+}
+/* ---------- Campaign map and progress, kept per era ---------- */
+function loadCampaign(era) {
+  try { return (JSON.parse(localStorage.getItem(CAMPAIGN_KEY) || '{}') || {})[era] || {}; } catch (e) { return {}; }
+}
+function saveCampaign(era, idx, value) {
+  try {
+    const all = JSON.parse(localStorage.getItem(CAMPAIGN_KEY) || '{}') || {};
+    all[era] = all[era] || {};
+    all[era][idx] = Math.max(all[era][idx] || 0, value);
+    localStorage.setItem(CAMPAIGN_KEY, JSON.stringify(all));
+  } catch (e) {}
+}
+function openCampaign(id) {
+  if (CLASSES[id] && CLASSES[id].playable) currentShip = id;
+  currentEra = CLASSES[currentShip].era;
+  renderCampaign();
+  show('campaign');
+  const f = document.querySelector('#missionPicks .pcard:not(:disabled)'); f && f.focus();
+}
+function campaignBack() {
+  const e = ERAS.find(x => x.id === currentEra);
+  if (e.ships.length === 1) { show('era'); return; }
+  renderShips(e); show('ships');
+}
+function renderCampaign() {
+  const prog = loadCampaign(currentEra), box = $('missionPicks');
+  box.textContent = '';
+  $('campEra').textContent = `Campaign · ${ERAS.find(e => e.id === currentEra).name}`;
+  MISSIONS.forEach((M, i) => {
+    const won = prog[i] !== undefined, open = i === 0 || prog[i - 1] !== undefined;
+    const b = el('button', 'pcard'); b.type = 'button'; b.disabled = !open;
+    b.append(el('span', 'num lbl', String(i + 1)), el('span', 'yr', TYPE_LABEL[M.type]), el('span', 'pn', M.name), el('span', 'pd', M.brief));
+    b.append(el('span', 'perk', won ? `Won · best ${prog[i].toLocaleString('en-GB')}` : open ? 'Available' : 'Locked'));
+    b.addEventListener('click', () => { selectedMission = i; startGame(); });
+    box.append(b);
+  });
+}
+function toMap() {
+  mode = 'menu'; paused = false;
+  resetWorld();
+  $('hud').hidden = true; openCampaign(currentShip);
+}
+function showDebrief(win, reason) {
+  const M = MISSIONS[mis.idx], last = mis.idx === MISSIONS.length - 1;
+  mode = 'end';
+  $('dEye').textContent = win ? (last ? 'Campaign complete' : 'Mission accomplished') : 'Mission failed';
+  $('dTitle').textContent = M.name;
+  $('dText').textContent = win ? M.win : reason;
+  $('dScore').textContent = score.toLocaleString('en-GB');
+  $('dSunk').textContent = sunk;
+  $('dHull').textContent = Math.round(100 * player.hp / player.maxHp) + '%';
+  $('dNext').hidden = !(win && !last);
+  show('debrief');
+  ($('dNext').hidden ? $('dRetry') : $('dNext')).focus();
 }
 // Between waves and missions the crew patch the hull, and the magazine is restocked in part.
 function resupply(healFrac, ammoFrac) {
@@ -1458,11 +1572,12 @@ window.addEventListener('keydown', e => {
   if (e.code === 'Escape' || act === 'pause') {
     if (playing) { togglePause(); e.preventDefault(); }
     else if (!$('ships').hidden) show('era');
+    else if (!$('campaign').hidden) campaignBack();
     else if (!$('keys').hidden) { renderControls(); show('controls'); }
     else if (!$('era').hidden || !$('controls').hidden) { show('menu'); $('bStart').focus(); }
     return;
   }
-  if (!playing && (!$('era').hidden || !$('ships').hidden) && /^Digit[1-9]$/.test(e.code)) {
+  if (!playing && (!$('era').hidden || !$('ships').hidden || !$('campaign').hidden) && /^Digit[1-9]$/.test(e.code)) {
     const cards = document.querySelectorAll('.screen:not([hidden]) .pcard');
     const c = cards[parseInt(e.code.slice(5), 10) - 1];
     if (c) c.click();
@@ -2915,7 +3030,7 @@ function toast(msg) {
   const t = $('toast'); t.textContent = msg; t.classList.add('show');
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1500);
 }
-function show(id) { for (const s of ['menu', 'era', 'ships', 'controls', 'keys', 'pause', 'over']) $(s).hidden = s !== id; }
+function show(id) { for (const s of ['menu', 'era', 'ships', 'campaign', 'controls', 'keys', 'pause', 'debrief', 'over']) $(s).hidden = s !== id; }
 
 /* ---------- Era and ship pickers ---------- */
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -2934,7 +3049,7 @@ function renderEras() {
 }
 function chooseEra(id) {
   const e = ERAS.find(x => x.id === id);
-  if (e.ships.length === 1) { startGame(e.ships[0]); return; }
+  if (e.ships.length === 1) { pickShip(e.ships[0]); return; }
   renderShips(e);
   show('ships');
   const first = document.querySelector('#shipPicks .pcard'); first && first.focus();
@@ -2952,7 +3067,7 @@ function renderShips(e) {
     const mt = el('div', 'mt');
     for (const [k, label] of METERS) if (card.stats[k] != null) mt.append(el('span', null, label), pips(card.stats[k]));
     b.append(mt);
-    b.addEventListener('click', () => startGame(id));
+    b.addEventListener('click', () => pickShip(id));
     box.append(b);
   });
 }
@@ -3013,6 +3128,7 @@ function renderKeys() {
 }
 
 /* ---------- Game flow ---------- */
+function pickShip(id) { if (gameMode === 'mission') openCampaign(id); else startGame(id); }
 function startGame(id) {
   if (typeof id === 'string' && CLASSES[id] && CLASSES[id].playable) currentShip = id;
   const c = CLASSES[currentShip];
@@ -3026,7 +3142,7 @@ function startGame(id) {
   applyShipHud(c);
   mode = 'play'; paused = false;
   show(null); $('hud').hidden = false;
-  if (gameMode === 'mission') startMission(0);
+  if (gameMode === 'mission') startMission(selectedMission);
   else { intermission = 3.2; showBanner(c.name, c.startLine); }   // a short calm before the first sails appear
   hudT = 0;
 }
@@ -3075,6 +3191,10 @@ function setSound(v) { Snd.setOn(v); $('optSound').checked = v; if (mode === 'pl
 
 $('bStart').addEventListener('click', () => { gameMode = 'free'; renderEras(); show('era'); const f = document.querySelector('#eraPicks .pcard'); f && f.focus(); });
 $('bMissions').addEventListener('click', () => { gameMode = 'mission'; renderEras(); show('era'); const f = document.querySelector('#eraPicks .pcard'); f && f.focus(); });
+$('bCampBack').addEventListener('click', campaignBack);
+$('dNext').addEventListener('click', () => { selectedMission = mis.idx + 1; startGame(); });
+$('dRetry').addEventListener('click', () => { selectedMission = mis.idx; startGame(); });
+$('dMap').addEventListener('click', toMap);
 $('bEraBack').addEventListener('click', () => { show('menu'); $('bStart').focus(); });
 $('bShipsBack').addEventListener('click', () => { show('era'); const f = document.querySelector('#eraPicks .pcard'); f && f.focus(); });
 $('bControls').addEventListener('click', () => { renderControls(); show('controls'); $('bBack').focus(); });
@@ -3121,7 +3241,7 @@ function frame(now) {
   const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
   if (!paused) update(dt);
   render();
-  if (mode === 'play' || mode === 'over') { updateHud(dt); drawCompass(); }
+  if (mode === 'play' || mode === 'over' || mode === 'end') { updateHud(dt); drawCompass(); }
   $('hurt').style.opacity = hurt.toFixed(2);
   requestAnimationFrame(frame);
 }

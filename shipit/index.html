@@ -1099,7 +1099,7 @@ function resetWorld() {
   player.speed = player.c.maxSpeed * 0.4;
   ships.push(player);
   cam.x = player.x; cam.y = player.y;
-  fogs = Array.from({ length: 5 }, () => newFog(player));
+  fogs = Array.from({ length: 3 }, () => newFog(player));
   squall = { t: 0, next: rand(50, 80) };
   mis = null;
   wave = 0; cleared = 0; score = 0; sunk = 0; pending = []; intermission = 0; overTimer = -1;
@@ -1111,7 +1111,7 @@ function resetWorld() {
    see and shoot, so fog is cover: get into it, and the enemy has to come in after you. */
 function newFog(c) {
   const a = rand(-Math.PI, Math.PI), d = rand(900, 1500);
-  return { x: c.x + Math.cos(a) * d, y: c.y + Math.sin(a) * d, r: rand(260, 420), wisp: rand(0, TAU) };
+  return { x: c.x + Math.cos(a) * d, y: c.y + Math.sin(a) * d, r: rand(55, 85), wisp: rand(0, TAU) };
 }
 function concealed(s) {
   for (const f of fogs) if (Math.hypot(s.x - f.x, s.y - f.y) < f.r) return true;

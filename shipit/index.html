@@ -56,7 +56,16 @@ body{margin:0;background:var(--sea);color:var(--bone);font-family:var(--body);fo
 #binnacle{left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 12px}
 #compass{width:150px;height:150px;display:block}
 #windTxt{font-size:14px;color:var(--muted);text-align:center;line-height:1.25}
-#guns{left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;gap:22px;padding:10px 18px}
+#guns{left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;gap:22px;padding:30px 18px 10px;pointer-events:auto}
+/* drag handle, minimize and size toggle for the gun panel; the panel remembers its place */
+.phandle{position:absolute;left:0;right:0;top:0;height:22px;display:flex;justify-content:space-between;align-items:center;padding:0 6px 0 10px;box-sizing:border-box;font-family:var(--display);font-size:12px;letter-spacing:.08em;color:var(--muted);cursor:grab;user-select:none;touch-action:none;border-bottom:1px solid var(--brass-dim)}
+.phandle:active{cursor:grabbing}
+.pbtns{display:flex;gap:4px}
+.pbtn{font-family:var(--body);font-size:13px;line-height:1;min-width:20px;height:16px;padding:0 4px;color:var(--bone);background:transparent;border:1px solid var(--brass-dim);border-radius:2px;cursor:pointer}
+.pbtn:hover{border-color:var(--brass)}
+#guns.compact{zoom:.75}
+#guns.min{height:22px;padding:0;width:170px;overflow:hidden;box-sizing:border-box}
+#guns.min .gauge{display:none}
 .gauge{width:160px;display:flex;flex-direction:column;gap:5px}
 .gauge .row b{font-size:14px;font-weight:600;white-space:nowrap}
 .gauge .bar i{background:var(--brass)}
@@ -133,7 +142,7 @@ select:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
   #ship .name{font-size:21px}
   #compass{width:110px;height:110px}
   .gauge{width:100px}
-  #guns{gap:10px;padding:8px 10px}
+  #guns{gap:10px;padding:30px 10px 8px}
   #quick{display:none}
 }
 @media (prefers-reduced-motion:reduce){
@@ -175,6 +184,7 @@ select:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
   </section>
 
   <section class="panel" id="guns" aria-label="Guns and repairs">
+    <div class="phandle" id="gunsHandle" title="Drag to move"><span>Guns · drag</span><span class="pbtns"><button class="pbtn" id="gunsSize" type="button" title="Size: large or small">S</button><button class="pbtn" id="gunsMin" type="button" title="Minimize or restore">–</button></span></div>
     <div class="gauge" id="gPort">
       <div class="row"><span class="lbl"><kbd id="kPort">Q</kbd> <span id="lblQ">Port guns</span></span></div>
       <div class="bar"><i></i></div>
@@ -407,27 +417,28 @@ const DUEL = {
 /* The campaign, in order. hold: survive secs and clear each fleet, which arrives every `every`
    seconds. intercept: sink the runners before the time runs out. flagship: sink the flagship and
    her escort before the time runs out. */
+/* Difficulty climbs in order: fleets get bigger and gaps shorter, and flagships bring more escorts. */
 const MISSIONS = [
-  { name: 'Hold the line', type: 'hold', secs: 120, every: 26, tier: 2,
+  { name: 'Hold the line', type: 'hold', secs: 120, every: 36, tier: 1,
     brief: 'Fleets come in until the bell. Keep afloat for two minutes and clear each one.',
     win: 'The line held. Two minutes of fleets, and the sea is quiet again.' },
-  { name: 'Run down the runner', type: 'intercept', secs: 150, count: 1, lost: 'the runner got clear',
+  { name: 'Run down the runner', type: 'intercept', secs: 170, count: 1, lost: 'the runner got clear',
     brief: 'A fast ship is breaking for open water. Sink her before she gets clear.',
     win: 'The runner is on the bottom and her cargo never reached port.' },
-  { name: 'Sink the flagship', type: 'flagship', secs: 240, escorts: 2, lost: 'the flagship got clear',
-    brief: 'The enemy flagship leads a small squadron. Sink her and her escort.',
-    win: 'The flagship is gone, and her squadron with her.' },
-  { name: 'Hold longer', type: 'hold', secs: 180, every: 22, tier: 3,
+  { name: 'Sink the flagship', type: 'flagship', secs: 240, escorts: 1, lost: 'the flagship got clear',
+    brief: 'The enemy flagship has one escort. Sink her and the escort.',
+    win: 'The flagship is gone, and her escort with her.' },
+  { name: 'Hold longer', type: 'hold', secs: 180, every: 30, tier: 2,
     brief: 'Bigger fleets and no respite. Three minutes, and clear each one.',
     win: 'Three minutes under fire, and the line still stands.' },
-  { name: 'Run down the pair', type: 'intercept', secs: 170, count: 2, lost: 'a runner got clear',
+  { name: 'Run down the pair', type: 'intercept', secs: 190, count: 2, lost: 'a runner got clear',
     brief: 'Two fast ships are running for it, one to each side.',
     win: 'Both runners are sunk. Nothing got clear.' },
-  { name: 'The last squadron', type: 'flagship', secs: 260, escorts: 4, lost: 'the flagship got clear',
-    brief: 'The flagship has her escort. Take them down before she gets clear.',
+  { name: 'The last squadron', type: 'flagship', secs: 260, escorts: 2, lost: 'the flagship got clear',
+    brief: 'The flagship has two escorts. Take them down before she gets clear.',
     win: 'The last squadron is sunk. Only the far coast remains.' },
-  { name: 'The relentless tide', type: 'hold', secs: 150, every: 20, tier: 4,
-    brief: 'The enemy has stopped waiting for orders. Fleets arrive every twenty seconds. Hold for two and a half minutes.',
+  { name: 'The relentless tide', type: 'hold', secs: 180, every: 26, tier: 3,
+    brief: 'The enemy has stopped waiting for orders. Fleets arrive every twenty-six seconds. Hold for three minutes.',
     win: 'Wave after wave broke on your line, and the line held.' },
   { name: 'Three to the open sea', type: 'intercept', secs: 200, count: 3, lost: 'a runner got clear',
     brief: 'Three fast ships are scattering for open water. Catch and sink all of them.',
@@ -435,7 +446,7 @@ const MISSIONS = [
   { name: 'Flagship at anchor', type: 'flagship', secs: 230, escorts: 3, lost: 'the flagship got clear',
     brief: 'The enemy flagship has anchored under a fort with three escorts. Take her before the tide turns.',
     win: 'The anchored flagship went down under the fort guns.' },
-  { name: 'The long watch', type: 'hold', secs: 240, every: 18, tier: 4,
+  { name: 'The long watch', type: 'hold', secs: 240, every: 22, tier: 3,
     brief: 'No respite and no bell until the end. Four minutes of fleets, and clear each one.',
     win: 'Four minutes of relentless fire, and you are still afloat.' },
   { name: 'Hunt the raiders', type: 'intercept', secs: 180, count: 4, lost: 'a raider got clear',
@@ -1701,7 +1712,7 @@ function fireMissiles(s) {
   const n = Math.min(m.salvo, s.missiles);
   for (let i = 0; i < n; i++) s.queue.push({ t: 0.15 + i * 0.5, missile: true, tgt: tg[i % tg.length][1] });
   s.missiles -= n;
-  s.reload[1] = m.reload * (s.isPlayer ? 1 : enemyReload);
+  s.reload[1] = s.isPlayer ? 8 : m.reload * enemyReload;   // your cells cycle in 8s; the magazine itself is only refilled by rearming
   return 'ok';
 }
 function spawnMissile(s, q) {
@@ -1797,7 +1808,7 @@ function updateDefense(dt) {
       if (!d.ciwsR || b.dead || b.faction === (s.isPlayer ? 0 : 1)) continue;
       if (Math.hypot(b.x - s.x, b.y - s.y) >= d.ciwsR) continue;
       let hz = d.ciwsL * 1.5;
-      if (s.isPlayer) hz = Math.abs(angNorm(Math.atan2(b.y - s.y, b.x - s.x) - s.ciwsAng)) < 0.35 ? d.ciwsL * 3 : 0;
+      if (s.isPlayer) hz = Math.abs(angNorm(Math.atan2(b.y - s.y, b.x - s.x) - s.ciwsAng)) < 0.35 ? d.ciwsL * 6 : 0;
       if (hz > 0 && Math.random() < 1 - Math.exp(-hz * dt)) intercept(s, b, 'ciws');
     }
     for (const m of missiles) {
@@ -1806,7 +1817,7 @@ function updateDefense(dt) {
       if (d.ciwsR && dist < d.ciwsR) {
         // the player's close-in gun is manual: lethal inside its cone, blind outside it
         let hz = d.ciwsL;
-        if (s.isPlayer) hz = Math.abs(angNorm(Math.atan2(m.y - s.y, m.x - s.x) - s.ciwsAng)) < 0.35 ? d.ciwsL * 2.4 : 0;
+        if (s.isPlayer) hz = Math.abs(angNorm(Math.atan2(m.y - s.y, m.x - s.x) - s.ciwsAng)) < 0.35 ? d.ciwsL * 5 : 0;
         if (hz > 0 && Math.random() < 1 - Math.exp(-hz * dt)) { intercept(s, m, 'ciws'); continue; }
       }
       if (d.samR && dist < d.samR && dist > 70 && samBusy < d.samCh) {
@@ -3217,6 +3228,49 @@ $('qFull').addEventListener('click', e => { e.currentTarget.blur(); toggleFullsc
 $('qMusic').addEventListener('click', e => { e.currentTarget.blur(); Snd.init(); setMusic(!Snd.musicOn); });
 $('optSound').addEventListener('change', e => { Snd.init(); setSound(e.target.checked); });
 $('optMusic').addEventListener('change', e => { Snd.init(); setMusic(e.target.checked); });
+/* Gun panel: drag it anywhere on screen, minimize it to a bar, or toggle its size. */
+const gunsPanel = $('guns');
+const GUNS_KEY = 'shipit-guns-panel';
+function saveGunsPanel() {
+  const r = gunsPanel.getBoundingClientRect();
+  const st = { left: r.left, top: r.top, min: gunsPanel.classList.contains('min'), compact: gunsPanel.classList.contains('compact') };
+  try { localStorage.setItem(GUNS_KEY, JSON.stringify(st)); } catch (e) {}
+}
+function placeGunsPanel(x, y) {
+  const w = gunsPanel.offsetWidth, h = gunsPanel.offsetHeight;
+  gunsPanel.style.left = clamp(x, 0, Math.max(0, window.innerWidth - w)) + 'px';
+  gunsPanel.style.top = clamp(y, 0, Math.max(0, window.innerHeight - h)) + 'px';
+  gunsPanel.style.bottom = 'auto';
+  gunsPanel.style.transform = 'none';
+}
+(() => {
+  let st = null;
+  try { st = JSON.parse(localStorage.getItem(GUNS_KEY) || 'null'); } catch (e) {}
+  if (!st) return;
+  gunsPanel.classList.toggle('min', !!st.min);
+  gunsPanel.classList.toggle('compact', !!st.compact);
+  gunsPanel.style.left = st.left + 'px'; gunsPanel.style.top = st.top + 'px';
+  gunsPanel.style.bottom = 'auto'; gunsPanel.style.transform = 'none';
+})();
+window.addEventListener('resize', () => {
+  if (gunsPanel.style.top) placeGunsPanel(parseFloat(gunsPanel.style.left) || 0, parseFloat(gunsPanel.style.top) || 0);
+});
+let gunsDrag = null;
+$('gunsHandle').addEventListener('pointerdown', e => {
+  if (e.target.closest('button')) return;
+  const r = gunsPanel.getBoundingClientRect();
+  gunsDrag = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+  $('gunsHandle').setPointerCapture(e.pointerId);
+  placeGunsPanel(r.left, r.top);
+});
+$('gunsHandle').addEventListener('pointermove', e => {
+  if (!gunsDrag) return;
+  placeGunsPanel(e.clientX - gunsDrag.dx, e.clientY - gunsDrag.dy);
+});
+$('gunsHandle').addEventListener('pointerup', () => { if (gunsDrag) { gunsDrag = null; saveGunsPanel(); } });
+$('gunsHandle').addEventListener('pointercancel', () => { gunsDrag = null; });
+$('gunsMin').addEventListener('click', e => { gunsPanel.classList.toggle('min'); e.currentTarget.blur(); saveGunsPanel(); });
+$('gunsSize').addEventListener('click', e => { gunsPanel.classList.toggle('compact'); e.currentTarget.blur(); saveGunsPanel(); });
 $('optWind').value = windMode;
 $('optWind').addEventListener('change', e => {
   windMode = e.target.value; snapWind();

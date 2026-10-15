@@ -419,7 +419,7 @@ const DUEL = {
    her escort before the time runs out. */
 /* Difficulty climbs in order: fleets get bigger and gaps shorter, and flagships bring more escorts. */
 const MISSIONS = [
-  { name: 'Hold the line', type: 'hold', secs: 120, every: 36, tier: 1,
+  { name: 'Hold the line', type: 'hold', secs: 120, every: 45, tier: 1, acc: 1.6, rel: 1.5,
     brief: 'Fleets come in until the bell. Keep afloat for two minutes and clear each one.',
     win: 'The line held. Two minutes of fleets, and the sea is quiet again.' },
   { name: 'Run down the runner', type: 'intercept', secs: 170, count: 1, lost: 'the runner got clear',
@@ -1326,6 +1326,7 @@ function startMission(i) {
   mis = { idx: i, t: 0, spawnT: 1, targets: 0, done: false, next: 0 };
   selectedMission = i;
   resetRound();
+  enemyAcc = def.acc || 1; enemyReload = def.rel || 1;   // optional per-mission easing: acc above 1 scatters shots, rel above 1 slows reloads
   pending = [];
   if (def.type === 'intercept') {
     for (let k = 0; k < def.count; k++) pending.push({ kind: duel.kind, t: 1 + k * 1.5, ang: spread(k, def.count), opts: { hpX: duel.hpX, turnX: duel.turnX, target: true, flee: true } });

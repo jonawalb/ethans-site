@@ -56,7 +56,7 @@ body{margin:0;background:var(--sea);color:var(--bone);font-family:var(--body);fo
 #binnacle{left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 12px}
 #compass{width:150px;height:150px;display:block}
 #windTxt{font-size:14px;color:var(--muted);text-align:center;line-height:1.25}
-#guns{left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;gap:22px;padding:30px 18px 10px;pointer-events:auto}
+#guns{left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;justify-content:center;max-width:43vw;gap:12px 16px;padding:30px 18px 10px;pointer-events:auto}
 /* drag handle, minimize and size toggle for the gun panel; the panel remembers its place */
 .phandle{position:absolute;left:0;right:0;top:0;height:22px;display:flex;justify-content:space-between;align-items:center;padding:0 6px 0 10px;box-sizing:border-box;font-family:var(--display);font-size:12px;letter-spacing:.08em;color:var(--muted);cursor:grab;user-select:none;touch-action:none;border-bottom:1px solid var(--brass-dim)}
 .phandle:active{cursor:grabbing}
@@ -66,7 +66,7 @@ body{margin:0;background:var(--sea);color:var(--bone);font-family:var(--body);fo
 #guns.compact{zoom:.75}
 #guns.min{height:22px;padding:0;width:170px;overflow:hidden;box-sizing:border-box}
 #guns.min .gauge{display:none}
-.gauge{width:160px;display:flex;flex-direction:column;gap:5px}
+.gauge{width:124px;display:flex;flex-direction:column;gap:5px}
 .gauge .row b{font-size:14px;font-weight:600;white-space:nowrap}
 .gauge .bar i{background:var(--brass)}
 .gauge.ready .bar i{background:var(--green)}
@@ -200,6 +200,21 @@ select:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
       <div class="bar"><i></i></div>
       <div class="row"><b class="state">Ready</b></div>
     </div>
+    <div class="gauge" id="gHull">
+      <div class="row"><span class="lbl">Hull</span></div>
+      <div class="bar"><i></i></div>
+      <div class="row"><b class="state">Ready</b></div>
+    </div>
+    <div class="gauge" id="gTarget">
+      <div class="row"><span class="lbl">Target</span></div>
+      <div class="bar"><i></i></div>
+      <div class="row"><b class="state">None</b></div>
+    </div>
+    <div class="gauge" id="gPhalanx" hidden>
+      <div class="row"><span class="lbl"><kbd>Space</kbd> Phalanx</span></div>
+      <div class="bar"><i></i></div>
+      <div class="row"><b class="state">Ready</b></div>
+    </div>
     <div class="gauge" id="gDecoy" hidden>
       <div class="row"><span class="lbl"><kbd id="kDecoy">X</kbd> Decoys</span></div>
       <div class="bar"><i></i></div>
@@ -220,6 +235,7 @@ select:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
   <div id="quick">
     <button class="qbtn" id="qPause" type="button">Pause · Esc</button>
     <button class="qbtn" id="qFull" type="button">Fullscreen · F</button>
+    <button class="qbtn" id="qView" type="button">First person · C</button>
     <button class="qbtn" id="qMusic" type="button">Music · M</button>
   </div>
 
@@ -1292,7 +1308,7 @@ function spawnFleet(n) {
 function resetRound() {
   roundUses = { heli: 1, jam: 1 }; jamT = 0;
   // Phalanx rounds: 50 a round in freeplay, and 10 more for each later campaign mission
-  if (player) player.phalanx = 50 + (gameMode === 'mission' && mis ? 10 * mis.idx : 0);
+  if (player) player.phalanx = player.phalanxMax = 50 + (gameMode === 'mission' && mis ? 10 * mis.idx : 0);
 }
 // The Phalanx is hand-fired: each press takes one round at the nearest incoming shell in range.
 // The best chance is when the shell is at mid range; too far off and too close in both miss more.
@@ -1457,6 +1473,7 @@ const ACTIONS = [
   { id: 'jam', label: 'Electronic jamming (missile age, once a round)', def: 'KeyJ' },
   { id: 'pause', label: 'Pause', def: 'KeyP' },
   { id: 'fullscreen', label: 'Fullscreen', def: 'KeyF' },
+  { id: 'view', label: 'Toggle first-person view', def: 'KeyC' },
   { id: 'music', label: 'Music on / off', def: 'KeyM' },
   { id: 'sound', label: 'Sound on / off', def: 'KeyN' },
 ];
@@ -1504,6 +1521,7 @@ function edge(act) {
       if (isModern(player)) tryPhalanx(true);
       else edge('fireAll');
       break;
+    case 'view': toggleView(); break;
     case 'target': if (isModern(player)) cycleTarget(); break;
     case 'decoy': if (isModern(player)) tryDecoy(true); break;
     case 'rearm': if (isModern(player)) tryRearm(); break;
@@ -2354,27 +2372,30 @@ function render() {
   view.w = W / ZOOM; view.h = H / ZOOM; view.x0 = cam.x - view.w / 2; view.y0 = cam.y - view.h / 2;
   ctx.setTransform(DPR * ZOOM, 0, 0, DPR * ZOOM, DPR * (W / 2 - cam.x * ZOOM + shx), DPR * (H / 2 - cam.y * ZOOM + shy));
 
-  drawSea();
-  drawWakes();
-  drawDecoys();
-  drawDebris();
-  if (mode === 'play') { if (isModern(player)) drawRanges(); else drawArcs(); }
-  // ships hidden in fog are not drawn at all
-  const order = ships.filter(s => s.isPlayer || s.sinking || canSee(player, s)).sort((a, b) => (b.sinking - a.sinking) || (a.isPlayer - b.isPlayer));
-  for (const s of order) drawShip(s);
-  drawFog();
-  drawBalls();
-  drawMissiles();
-  drawTracers();
-  drawParticles();
-  drawFloaters();
+  if (fpv) drawFirstPerson();
+  else {
+    drawSea();
+    drawWakes();
+    drawDecoys();
+    drawDebris();
+    if (mode === 'play') { if (isModern(player)) drawRanges(); else drawArcs(); }
+    // ships hidden in fog are not drawn at all
+    const order = ships.filter(s => s.isPlayer || s.sinking || canSee(player, s)).sort((a, b) => (b.sinking - a.sinking) || (a.isPlayer - b.isPlayer));
+    for (const s of order) drawShip(s);
+    drawFog();
+    drawBalls();
+    drawMissiles();
+    drawTracers();
+    drawParticles();
+    drawFloaters();
+  }
 
   // screen space overlays
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.globalAlpha = 1;
   ctx.drawImage(vignette, 0, 0, W, H);
   if (squall.t > 0) drawSquall();
-  if (mode === 'play') { drawHealthBars(); drawIndicators(); }
+  if (mode === 'play' && !fpv) { drawHealthBars(); drawIndicators(); }
 }
 
 /* The sea is one wave train. Every layer moves along the wind at a fixed fraction of
@@ -2884,6 +2905,88 @@ function drawFloaters() {
   ctx.globalAlpha = 1;
 }
 
+/* ---------- First-person view: the same fight, seen from the bridge ---------- */
+let fpv = false;
+try { fpv = localStorage.getItem('shipit-view') === 'fp'; } catch (e) {}
+function updateViewBtn() { $('qView').textContent = fpv ? 'Top-down · C' : 'First person · C'; }
+function toggleView() {
+  fpv = !fpv;
+  try { localStorage.setItem('shipit-view', fpv ? 'fp' : 'tp'); } catch (e) {}
+  updateViewBtn();
+  toast(fpv ? 'First-person view' : 'Top-down view');
+}
+updateViewBtn();
+const FP_DECK = 14;   // height of the bridge above the water, in world units
+// Project a world point at height h into the bridge view: [screenX, screenY, depth, focal length]
+function fpProject(x, y, h) {
+  const dx = x - player.x, dy = y - player.y, fx = Math.cos(player.heading), fy = Math.sin(player.heading);
+  const z = dx * fx + dy * fy, lat = dy * fx - dx * fy, F = W * 0.7, hor = H * 0.42;
+  return [W / 2 + lat / z * F, hor + (FP_DECK - h) / z * F, z, F];
+}
+function drawFirstPerson() {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const hor = H * 0.42, F = W * 0.7;
+  const sky = ctx.createLinearGradient(0, 0, 0, hor);
+  sky.addColorStop(0, '#1d3a52'); sky.addColorStop(1, '#8fb0bd');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, hor + 1);
+  const sea = ctx.createLinearGradient(0, hor, 0, H);
+  sea.addColorStop(0, seaBase); sea.addColorStop(1, '#03111d');
+  ctx.fillStyle = sea; ctx.fillRect(0, hor, W, H - hor);
+  // wave rows: far rows bunch up at the horizon and slide past as the ship moves
+  ctx.lineWidth = 1.2;
+  for (let d = 6; d < H - hor; d *= 1.12) {
+    const z = FP_DECK * F / d, dash = 90 * F / z, off = (T * player.speed * F / z) % (dash * 2);
+    ctx.setLineDash([dash, dash]); ctx.lineDashOffset = -off;
+    ctx.strokeStyle = `rgba(200,225,235,${(0.05 + 0.25 * d / (H - hor)).toFixed(3)})`;
+    ctx.beginPath(); ctx.moveTo(0, hor + d); ctx.lineTo(W, hor + d); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  // other ships, far to near
+  const dist = s => Math.hypot(s.x - player.x, s.y - player.y);
+  const foes = ships.filter(s => !s.isPlayer && !s.sinking && canSee(player, s)).sort((a, b) => dist(b) - dist(a));
+  for (const s of foes) {
+    const [sx, sy, z, F2] = fpProject(s.x, s.y, 0);
+    if (z < 8 || z > 4000) continue;
+    const rel = s.heading - player.heading;
+    const wid = (s.c.L * Math.abs(Math.sin(rel)) + s.c.B * Math.abs(Math.cos(rel))) * F2 / z;
+    const fb = 7 * F2 / z;   // freeboard
+    ctx.fillStyle = s.c.hull; ctx.fillRect(sx - wid / 2, sy - fb, wid, fb);
+    ctx.fillStyle = s.c.band; ctx.fillRect(sx - wid / 2, sy - fb, wid, Math.max(1, fb * 0.3));
+    ctx.strokeStyle = 'rgba(30,22,14,0.9)'; ctx.lineWidth = 1.2;
+    const masts = s.c.masts || [0];
+    for (const mp of masts) {
+      const mx = sx + mp * s.c.L * Math.sin(rel) * F2 / z;
+      ctx.beginPath(); ctx.moveTo(mx, sy - fb); ctx.lineTo(mx, sy - fb - 45 * F2 / z); ctx.stroke();
+    }
+  }
+  // shells and missiles
+  for (const b of balls) {
+    if (b.dead) continue;
+    const u = b.t / b.life, [sx, sy, z, F2] = fpProject(b.x, b.y, 4 * 13 * u * (1 - u));
+    if (z < 8) continue;
+    ctx.fillStyle = b.faction === 1 ? '#151515' : '#e8e0d0';
+    ctx.beginPath(); ctx.arc(sx, sy, Math.max(1.2, 2.4 * F2 / z), 0, TAU); ctx.fill();
+  }
+  for (const m of missiles) {
+    if (m.dead) continue;
+    const [sx, sy, z, F2] = fpProject(m.x, m.y, 10);
+    if (z < 8) continue;
+    ctx.fillStyle = m.faction === 1 ? '#e0503c' : '#f6f3ec';
+    ctx.beginPath(); ctx.arc(sx, sy, Math.max(2, 4 * F2 / z), 0, TAU); ctx.fill();
+  }
+  for (const t of tracers) {
+    const a = fpProject(t.x0, t.y0, 4), b = fpProject(t.x1, t.y1, 4);
+    if (a[2] < 8 || b[2] < 8) continue;
+    ctx.globalAlpha = 1 - t.t / t.life;
+    ctx.strokeStyle = t.kind === 'ciws' ? '#ffd27a' : '#cfe8ff'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  // the bridge rail in the foreground
+  const deck = ctx.createLinearGradient(0, H * 0.78, 0, H);
+  deck.addColorStop(0, 'rgba(4,10,16,0)'); deck.addColorStop(1, 'rgba(4,10,16,0.85)');
+  ctx.fillStyle = deck; ctx.fillRect(0, H * 0.78, W, H * 0.22);
+}
 const toScreen = (x, y) => [(x - cam.x) * ZOOM + W / 2, (y - cam.y) * ZOOM + H / 2];
 function drawHealthBars() {
   for (const s of ships) {
@@ -2967,7 +3070,7 @@ const hud = {
   hpNum: $('hpNum'), hpBar: $('hpBar'), sail: $('sailTxt'), spd: $('spdTxt'), pos: $('posTxt'),
   wave: $('waveTxt'), left: $('leftTxt'), sunk: $('sunkTxt'), score: $('scoreTxt'), wind: $('windTxt'),
   gPort: $('gPort'), gStar: $('gStar'), gRep: $('gRep'), gHeli: $('gHeli'), gJam: $('gJam'),
-  tgt: $('tgtTxt'), obj: $('objTxt'), tallyLbl: $('tallyLbl'), gDecoy: $('gDecoy'), tag: $('shipTag'), name: $('shipName'), sailLbl: $('sailLbl'), lblQ: $('lblQ'), lblE: $('lblE'), lblR: $('lblR'), threat: $('threat'),
+  tgt: $('tgtTxt'), obj: $('objTxt'), tallyLbl: $('tallyLbl'), gDecoy: $('gDecoy'), gHull: $('gHull'), gTarget: $('gTarget'), gPhalanx: $('gPhalanx'), tag: $('shipTag'), name: $('shipName'), sailLbl: $('sailLbl'), lblQ: $('lblQ'), lblE: $('lblE'), lblR: $('lblR'), threat: $('threat'),
 };
 let hudT = 0;
 function applyShipHud(c) {
@@ -3030,7 +3133,25 @@ function updateHud(dt) {
       else setGauge(el, 1, 'Ready', 'ready');
     }
   }
-  hud.gHeli.hidden = hud.gJam.hidden = !isModern(p);
+  hud.gHeli.hidden = hud.gJam.hidden = hud.gPhalanx.hidden = !isModern(p);
+  // hull and target health, and on missile-age ships the Phalanx magazine
+  const hf = p.hp / p.maxHp;
+  setGauge(hud.gHull, hf, `${Math.ceil(p.hp)} / ${p.maxHp}`, hf > 0.5 ? 'ready' : hf > 0.25 ? 'busy' : 'off');
+  let tg = isModern(p) ? lockedTarget(p) : null;
+  if (!tg) {
+    let bd = Infinity;
+    for (const o of ships) {
+      if (o.faction === p.faction || o.sinking || !canSee(p, o)) continue;
+      const d = Math.hypot(o.x - p.x, o.y - p.y);
+      if (d < bd) { bd = d; tg = o; }
+    }
+  }
+  if (tg) setGauge(hud.gTarget, tg.hp / tg.maxHp, `${tg.c.label} · ${Math.ceil(tg.hp)} / ${tg.maxHp}`, 'busy');
+  else setGauge(hud.gTarget, 0, 'None', 'off');
+  if (isModern(p)) {
+    const max = p.phalanxMax || 50;
+    setGauge(hud.gPhalanx, p.phalanx / max, p.phalanx > 0 ? `${p.phalanx} rounds` : 'Empty', p.phalanx > 0 ? 'ready' : 'off');
+  }
   if (isModern(p)) {
     if (roundUses.heli > 0) setGauge(hud.gHeli, 1, 'Ready · once a round', 'ready');
     else setGauge(hud.gHeli, 0, 'Flown this round', 'off');
@@ -3257,6 +3378,7 @@ $('bAgain').addEventListener('click', () => startGame());
 $('bMenu2').addEventListener('click', toMenu);
 $('qPause').addEventListener('click', e => { e.currentTarget.blur(); togglePause(); });
 $('qFull').addEventListener('click', e => { e.currentTarget.blur(); toggleFullscreen(); });
+$('qView').addEventListener('click', e => { e.currentTarget.blur(); toggleView(); });
 $('qMusic').addEventListener('click', e => { e.currentTarget.blur(); Snd.init(); setMusic(!Snd.musicOn); });
 $('optSound').addEventListener('change', e => { Snd.init(); setSound(e.target.checked); });
 $('optMusic').addEventListener('change', e => { Snd.init(); setMusic(e.target.checked); });

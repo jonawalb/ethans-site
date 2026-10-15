@@ -1289,7 +1289,33 @@ function spawnFleet(n) {
 }
 
 /* A round is one freeplay wave or one mission. The helicopter and the jammer refill at the start of each. */
-function resetRound() { roundUses = { heli: 1, jam: 1 }; jamT = 0; }
+function resetRound() {
+  roundUses = { heli: 1, jam: 1 }; jamT = 0;
+  // Phalanx rounds: 50 a round in freeplay, and 10 more for each later campaign mission
+  if (player) player.phalanx = 50 + (gameMode === 'mission' && mis ? 10 * mis.idx : 0);
+}
+// The Phalanx is hand-fired: each press takes one round at the nearest incoming shell in range.
+// The best chance is when the shell is at mid range; too far off and too close in both miss more.
+function tryPhalanx(report) {
+  const p = player;
+  if (!p.c.def.ciwsR) { if (report) toast('No close-in gun on this ship'); return false; }
+  if (p.phalanx <= 0) { if (report) toast('Phalanx magazine empty for this round'); return false; }
+  let best = null, bd = Infinity;
+  for (const b of balls) {
+    if (b.dead || b.faction === 0) continue;
+    const d = Math.hypot(b.x - p.x, b.y - p.y);
+    if (d < p.c.def.ciwsR && d < bd) { bd = d; best = b; }
+  }
+  p.phalanx--;
+  if (!best) { if (report) toast(`No shell in range · ${p.phalanx} rounds left`); return false; }
+  const pHit = bd >= 90 && bd <= 170 ? 0.9 : bd > 170 ? 0.5 : 0.3;
+  if (Math.random() < pHit) intercept(p, best, 'ciws');
+  else {
+    tracers.push({ x0: p.x, y0: p.y, x1: best.x, y1: best.y, t: 0, life: 0.22, kind: 'ciws' });
+    if (report) toast(`Phalanx missed · ${p.phalanx} rounds left`);
+  }
+  return true;
+}
 
 /* ---------- Missions ----------
    The campaign runs its six objectives in order. Each has its own win and loss condition, and a
@@ -1419,6 +1445,8 @@ const ACTIONS = [
   { id: 'slewStbd', label: 'Slew close-in gun right (missile age; on sail, also steers)', def: 'ArrowRight' },
   { id: 'fireL', label: 'Port broadside (missile age: guns)', def: 'KeyQ' },
   { id: 'fireR', label: 'Starboard broadside (missile age: missiles)', def: 'KeyE' },
+  // listed before fireAll: on missile-age ships Space is the Phalanx; on sail and steam it still fires everything
+  { id: 'phalanx', label: 'Phalanx: shoot the nearest incoming shell (missile age)', def: 'Space' },
   { id: 'fireAll', label: 'Fire everything that is ready', def: 'Space' },
   { id: 'repair', label: 'Repair the hull', def: 'KeyR' },
   { id: 'target', label: 'Cycle target lock (missile age)', def: 'Tab' },
@@ -1471,6 +1499,10 @@ function edge(act) {
       }
       break;
     }
+    case 'phalanx':
+      if (isModern(player)) tryPhalanx(true);
+      else edge('fireAll');
+      break;
     case 'target': if (isModern(player)) cycleTarget(); break;
     case 'decoy': if (isModern(player)) tryDecoy(true); break;
     case 'rearm': if (isModern(player)) tryRearm(); break;
@@ -1805,11 +1837,10 @@ function updateDefense(dt) {
     let samBusy = 0;
     // close-in guns also engage the other side's shells, which cross the gate faster than missiles
     for (const b of balls) {
-      if (!d.ciwsR || b.dead || b.faction === (s.isPlayer ? 0 : 1)) continue;
+      // your Phalanx takes shells by hand (tryPhalanx); your close-in gun only takes missiles
+      if (!d.ciwsR || s.isPlayer || b.dead || b.faction === 1) continue;
       if (Math.hypot(b.x - s.x, b.y - s.y) >= d.ciwsR) continue;
-      let hz = d.ciwsL * 1.5;
-      if (s.isPlayer) hz = Math.abs(angNorm(Math.atan2(b.y - s.y, b.x - s.x) - s.ciwsAng)) < 0.35 ? d.ciwsL * 6 : 0;
-      if (hz > 0 && Math.random() < 1 - Math.exp(-hz * dt)) intercept(s, b, 'ciws');
+      if (Math.random() < 1 - Math.exp(-d.ciwsL * 1.5 * dt)) intercept(s, b, 'ciws');
     }
     for (const m of missiles) {
       if (m.dead || m.tgt !== s) continue;
@@ -3093,7 +3124,7 @@ function renderControls() {
     [[key('sailDown')], sail ? 'Take in sail' : 'Engines down'],
     [[key('turnPort'), key('turnStbd')], 'Turn to port / starboard'],
   ];
-  if (modern) rows.push([[key('fireL')], 'Fire the guns at the nearest hostile, any bearing'], [[key('fireR')], 'Launch an anti-ship missile salvo'], [[key('slewPort'), key('slewStbd')], 'Slew the close-in gun (CIWS)'], [[key('rearm')], 'Rearm missiles (10s, slow, cells locked)'], [[key('target')], 'Cycle your target lock'], [[key('decoy')], 'Deploy a decoy cloud'], [[key('heli')], 'Helicopter strike: one homing missile, once a round'], [[key('jam')], 'Electronic jamming: nearby missiles lose their lock for 8s, once a round'], [[key('fireAll')], 'Fire guns and missiles']);
+  if (modern) rows.push([[key('fireL')], 'Fire the guns at the nearest hostile, any bearing'], [[key('phalanx')], 'Phalanx: shoot the nearest incoming shell. Time it: mid range hits best'], [[key('fireR')], 'Launch an anti-ship missile salvo'], [[key('slewPort'), key('slewStbd')], 'Slew the close-in gun (CIWS)'], [[key('rearm')], 'Rearm missiles (10s, slow, cells locked)'], [[key('target')], 'Cycle your target lock'], [[key('decoy')], 'Deploy a decoy cloud'], [[key('heli')], 'Helicopter strike: one homing missile, once a round'], [[key('jam')], 'Electronic jamming: nearby missiles lose their lock for 8s, once a round'], [[key('fireAll')], 'Fire guns and missiles']);
   else rows.push([[key('fireL')], 'Fire the port ' + (c.turrets ? 'turrets' : 'broadside') + ' (left)'], [[key('fireR')], 'Fire the starboard ' + (c.turrets ? 'turrets' : 'broadside') + ' (right)'], [[key('fireAll')], 'Fire every loaded ' + (c.turrets ? 'battery' : 'broadside')]);
   rows.push([[key('repair')], sail ? 'Repair the hull' : 'Damage control: repair the hull'], [['Esc', key('pause')], 'Pause'], [[key('fullscreen'), key('music')], 'Fullscreen · music']);
   const o = $('orders'); o.textContent = '';

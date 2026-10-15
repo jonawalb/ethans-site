@@ -157,11 +157,12 @@ select:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
     </div>
     <div id="posTxt">Beam reach</div>
     <div id="tgtTxt" class="note" hidden></div>
+    <div id="objTxt" class="note" hidden></div>
     <div id="threat" role="alert" hidden></div>
   </section>
 
   <section class="panel" id="tally" aria-label="Battle tally">
-    <span class="lbl">Wave</span><span class="v big" id="waveTxt">1</span>
+    <span class="lbl" id="tallyLbl">Wave</span><span class="v big" id="waveTxt">1</span>
     <span class="lbl">Enemies left</span><span class="v" id="leftTxt">0</span>
     <span class="lbl">Ships sunk</span><span class="v" id="sunkTxt">0</span>
     <span class="lbl">Score</span><span class="v" id="scoreTxt">0</span>
@@ -209,9 +210,10 @@ select:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
 <div class="screen" id="menu">
   <div class="card">
     <h1><em>1750 to the present day</em>Frigate Commander</h1>
-    <p class="lede">Take command of a warship and fight wave after wave of hostile ships. Choose an era, choose a ship, and learn what wind, steam and missiles do to the fight.</p>
+    <p class="lede">Take command of a warship. Fight endless waves in Freeplay, or work through a campaign of objectives in Missions. Choose an era, choose a ship, and learn what wind, fog, steam and missiles do to the fight.</p>
     <div class="btns">
-      <button class="btn primary" id="bStart" type="button">Start Game</button>
+      <button class="btn primary" id="bStart" type="button">Freeplay</button>
+      <button class="btn" id="bMissions" type="button">Missions</button>
       <button class="btn" id="bControls" type="button">Controls</button>
     </div>
     <div class="toggles">
@@ -256,7 +258,17 @@ select:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
     <p class="note" id="ctlFor"></p>
     <div class="orders" id="orders"></div>
     <ul class="tips" id="tips"></ul>
-    <div class="btns"><button class="btn" id="bBack" type="button">Back</button></div>
+    <div class="btns"><button class="btn" id="bRebind" type="button">Rebind keys</button><button class="btn" id="bBack" type="button">Back</button></div>
+  </div>
+</div>
+
+<!-- Rebind keys -->
+<div class="screen" id="keys" hidden>
+  <div class="card">
+    <h2 class="title">Rebind keys</h2>
+    <p class="note">Click a key, then press the new one. Esc cancels. A key already in use is swapped.</p>
+    <div class="orders" id="bindList"></div>
+    <div class="btns"><button class="btn" id="bResetKeys" type="button">Reset to defaults</button><button class="btn" id="bKeysBack" type="button">Back</button></div>
   </div>
 </div>
 
@@ -280,11 +292,12 @@ select:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
     <div class="stats">
       <span class="lbl">Final score</span><span class="v big" id="oScore">0</span>
       <span class="lbl">Enemy ships sunk</span><span class="v" id="oSunk">0</span>
-      <span class="lbl">Waves survived</span><span class="v" id="oWaves">0</span>
+      <span class="lbl" id="oWavesLbl">Waves survived</span><span class="v" id="oWaves">0</span>
       <span class="lbl">Best score</span><span class="v" id="oBest">0</span>
     </div>
     <div class="btns">
       <button class="btn primary" id="bAgain" type="button">Restart</button>
+      <button class="btn" id="bCopy" type="button">Copy result</button>
       <button class="btn" id="bMenu2" type="button">Main Menu</button>
     </div>
   </div>
@@ -344,6 +357,31 @@ const ERA_PAL = {
   modern: { p: { hull: '#6f7d85', band: '#4c585e', deck: '#8d999f' }, e: { hull: '#4a4545', band: '#a8372e', deck: '#625b5b' } },
 };
 const ERA_SEA = { sail: '#0d3651', steam: '#0e3650', modern: '#0b3045' };
+
+/* The duellist: every third freeplay wave, and the runners in intercept missions. The nimblest
+   hull of the era, with its hull and turn rate raised. */
+const DUEL = {
+  sail:   { kind: 'sloop',  hpX: 3,   turnX: 1.35 },
+  steam:  { kind: 'launch', hpX: 4,   turnX: 1.3 },
+  modern: { kind: 'fac',    hpX: 2.5, turnX: 1.25 },
+};
+/* The campaign, in order. hold: survive secs and clear each fleet, which arrives every `every`
+   seconds. intercept: sink the runners before the time runs out. flagship: sink the flagship and
+   her escort before the time runs out. */
+const MISSIONS = [
+  { name: 'Hold the line', type: 'hold', secs: 120, every: 26, tier: 2,
+    brief: 'Fleets come in until the bell. Keep afloat for two minutes and clear each one.' },
+  { name: 'Run down the runner', type: 'intercept', secs: 150, count: 1, lost: 'the runner got clear',
+    brief: 'A fast ship is breaking for open water. Sink her before she gets clear.' },
+  { name: 'Sink the flagship', type: 'flagship', secs: 240, escorts: 2, lost: 'the flagship got clear',
+    brief: 'The enemy flagship leads a small squadron. Sink her and her escort.' },
+  { name: 'Hold longer', type: 'hold', secs: 180, every: 22, tier: 3,
+    brief: 'Bigger fleets and no respite. Three minutes, and clear each one.' },
+  { name: 'Run down the pair', type: 'intercept', secs: 170, count: 2, lost: 'a runner got clear',
+    brief: 'Two fast ships are running for it, one to each side.' },
+  { name: 'The last squadron', type: 'flagship', secs: 260, escorts: 4, lost: 'the flagship got clear',
+    brief: 'The flagship has her escort. Take them down and the campaign is yours.' },
+];
 
 const CLASSES = {
   /* ---------- Age of Sail, 1750 to 1815 ---------- */
@@ -1005,6 +1043,7 @@ let windFrom = rand(-Math.PI, Math.PI), windTarget = windFrom, windTimer = 30, w
 let wave = 0, cleared = 0, score = 0, sunk = 0, pending = [], intermission = 0, overTimer = -1;
 let cam = { x: 0, y: 0 }, shake = 0, arcVis = 0, lastFire = -99, hurt = 0, lastIntercept = -99;
 let enemyAcc = 1, enemyReload = 1;
+let gameMode = 'free', mis = null, fogs = [], squall = { t: 0, next: 60 };
 let currentShip = 'resolute', currentEra = 'sail', seaBase = ERA_SEA.sail;
 const bests = {};
 const bestKey = id => id === 'resolute' ? 'frigate-best' : 'frigate-best-' + id;
@@ -1035,8 +1074,10 @@ function pickWindTarget() { const b = WIND_MODES[windMode]; return b == null ? r
 function snapWind() { windKnTarget = windKn = pickWindTarget(); windKnTimer = rand(18, 35); }
 snapWind();
 
-function makeShip(kind, x, y, heading, isPlayer) {
-  const c = CLASSES[kind];
+// opts can make a ship tougher or nimbler than its class. Such a ship gets its own copy of the class.
+function makeShip(kind, x, y, heading, isPlayer, opts) {
+  const base = CLASSES[kind], o = opts || {};
+  const c = o.hpX || o.turnX ? Object.assign({}, base, { hp: Math.round(base.hp * (o.hpX || 1)), turn: base.turn * (o.turnX || 1) }) : base;
   return {
     id: nextId++, kind, c, x, y, heading, isPlayer,
     speed: c.maxSpeed * 0.45, angVel: 0, turnInput: 0,
@@ -1046,8 +1087,9 @@ function makeShip(kind, x, y, heading, isPlayer) {
     missiles: c.missile ? c.missile.stock : 0,
     rearm: 0, ciwsAng: heading, lock: null, decoys: c.decoy && c.missile ? (isPlayer ? c.decoy.charges : 2) : 0, decoyCd: 0,
     sinking: false, sinkT: 0, sinkDir: Math.random() < 0.5 ? -1 : 1, gone: false,
-    repairing: 0, repairCd: 0,
-    ai: { offset: rand(-0.45, 0.45), side: 0 },
+    repairing: 0, repairCd: 0, rig: 0,   // rig: fraction of speed lost to cut rigging or engine damage
+    weaveT: rand(3, 6), flee: false, duel: false, target: false,
+    ai: { offset: rand(-0.45, 0.45), side: 0, last: null },
   };
 }
 
@@ -1057,8 +1099,57 @@ function resetWorld() {
   player.speed = player.c.maxSpeed * 0.4;
   ships.push(player);
   cam.x = player.x; cam.y = player.y;
+  fogs = Array.from({ length: 5 }, () => newFog(player));
+  squall = { t: 0, next: rand(50, 80) };
+  mis = null;
   wave = 0; cleared = 0; score = 0; sunk = 0; pending = []; intermission = 0; overTimer = -1;
   enemyAcc = 1; enemyReload = 1;
+}
+
+/* ---------- Fog banks ----------
+   A fog bank hides whatever sits inside it from anyone outside it. A ship inside fog can still
+   see and shoot, so fog is cover: get into it, and the enemy has to come in after you. */
+function newFog(c) {
+  const a = rand(-Math.PI, Math.PI), d = rand(900, 1500);
+  return { x: c.x + Math.cos(a) * d, y: c.y + Math.sin(a) * d, r: rand(260, 420), wisp: rand(0, TAU) };
+}
+function concealed(s) {
+  for (const f of fogs) if (Math.hypot(s.x - f.x, s.y - f.y) < f.r) return true;
+  return false;
+}
+// Can ship s see ship t? Open water is always seen; a ship in fog is seen only from inside fog.
+const canSee = (s, t) => !concealed(t) || concealed(s);
+
+/* ---------- Squalls ----------
+   Every minute or so a squall comes through: the wind backs or veers sharply and freshens for
+   about fourteen seconds, with rain across the sea. */
+function updateSquall(dt) {
+  if (squall.t > 0) {
+    squall.t -= dt;
+    if (squall.t <= 0) {
+      squall.t = 0; squall.next = rand(50, 80);
+      windKnTarget = pickWindTarget(); windKnTimer = rand(18, 35);
+    }
+    return;
+  }
+  squall.next -= dt;
+  if (squall.next > 0) return;
+  squall.t = 14;
+  windTarget = windFrom + (Math.random() < 0.5 ? -1 : 1) * rand(0.5, 0.85);
+  windKnTarget = clamp(windKnTarget + rand(7, 10), 4, 34); windKnTimer = 99;   // hold the freshened breeze
+  Snd.billow(0.2);
+  toast('Squall coming: the wind is backing and freshening');
+}
+function drawSquall() {
+  const f = clamp(Math.min(14 - squall.t, squall.t) / 2, 0, 1);
+  ctx.fillStyle = `rgba(20,30,38,${0.22 * f})`; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = `rgba(200,220,230,${0.35 * f})`; ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let i = 0; i < 70; i++) {
+    const x = (hash2(i, 1, 9) * W + T * 420) % W, y = (hash2(i, 2, 9) * H + T * 900) % H;
+    ctx.moveTo(x, y); ctx.lineTo(x - 6, y + 14);
+  }
+  ctx.stroke();
 }
 
 /* ---------- Waves ---------- */
@@ -1090,33 +1181,143 @@ function startWave(n) {
   wave = n;
   enemyAcc = Math.max(0.72, 1 - Math.max(0, n - 3) * 0.04);
   enemyReload = Math.max(0.8, 1 - Math.max(0, n - 3) * 0.03);
-  const comp = waveComposition(n);
   const base = rand(-Math.PI, Math.PI);
+  // every third wave is a duel: one fast, nimble enemy on its own
+  if (n % 3 === 0) {
+    const d = DUEL[currentEra];
+    pending = [{ kind: d.kind, t: 1, ang: base, opts: { hpX: d.hpX, turnX: d.turnX, duel: true } }];
+    showBanner(`Wave ${n} · Duel`, `A fast ${CLASSES[d.kind].label.toLowerCase()} is out to fight you alone. Keep her in front of you.`);
+    return;
+  }
+  const comp = waveComposition(n);
   pending = comp.map((kind, i) => ({ kind, t: 0.6 + i * 1.4, ang: base + (i - (comp.length - 1) / 2) * 0.55 + rand(-0.12, 0.12) }));
   showBanner(`Wave ${n}`, describe(comp));
 }
-function spawnEnemy(kind, ang) {
-  const d = Math.max(W, H) / ZOOM * 0.55 + 260;
+function spawnEnemy(kind, ang, opts) {
+  const o = opts || {}, d = Math.max(W, H) / ZOOM * 0.55 + 260;
   const x = player.x + Math.cos(ang) * d, y = player.y + Math.sin(ang) * d;
-  const s = makeShip(kind, x, y, Math.atan2(player.y - y, player.x - x), false);
+  const s = makeShip(kind, x, y, Math.atan2(player.y - y, player.x - x), false, o);
   s.sailTarget = 1; s.sail = 0.8; s.speed = s.c.maxSpeed * 0.6;
   if (s.c.mode === 'modern') s.reload[1] = rand(5, 12);   // no instant salvo on arrival
+  s.duel = !!o.duel; s.flee = !!o.flee; s.target = !!o.target;
+  if (s.target && mis) mis.targets++;
   ships.push(s);
+}
+// A fleet of the usual kind, for hold missions.
+function spawnFleet(n) {
+  const comp = waveComposition(n), base = rand(-Math.PI, Math.PI);
+  comp.forEach((kind, k) => pending.push({ kind, t: 0.6 + k * 1.4, ang: base + (k - (comp.length - 1) / 2) * 0.55 + rand(-0.12, 0.12) }));
+}
+
+/* ---------- Missions ----------
+   The campaign runs its six objectives in order. Each has its own win and loss condition, and a
+   finished mission resupplies the ship before the next one begins. */
+function startMission(i) {
+  const def = MISSIONS[i], foes = CLASSES[currentShip].foes, duel = DUEL[currentEra], base = rand(-Math.PI, Math.PI);
+  const spread = (k, n) => base + (k - (n - 1) / 2) * 0.6;
+  mis = { idx: i, t: 0, spawnT: 1, targets: 0, done: false, next: 0 };
+  pending = [];
+  if (def.type === 'intercept') {
+    for (let k = 0; k < def.count; k++) pending.push({ kind: duel.kind, t: 1 + k * 1.5, ang: spread(k, def.count), opts: { hpX: duel.hpX, turnX: duel.turnX, target: true, flee: true } });
+  } else if (def.type === 'flagship') {
+    pending.push({ kind: foes.h, t: 1, ang: base, opts: { hpX: 1.8, target: true } });
+    for (let k = 0; k < def.escorts; k++) pending.push({ kind: foes.m, t: 2.5 + k * 1.2, ang: spread(k, def.escorts) + 0.3 });
+  }
+  showBanner(`Mission ${i + 1} of ${MISSIONS.length}: ${def.name}`, def.brief);
+}
+function missionLogic(dt) {
+  const def = MISSIONS[mis.idx];
+  if (mis.done) {
+    mis.next -= dt;
+    if (mis.next <= 0) {
+      if (mis.idx + 1 < MISSIONS.length) startMission(mis.idx + 1);
+      else gameOver('The campaign is won. The sea is yours');
+    }
+    return;
+  }
+  mis.t += dt;
+  if (def.type === 'hold' && mis.t < def.secs) {
+    mis.spawnT -= dt;
+    if (mis.spawnT <= 0) { mis.spawnT = def.every; spawnFleet(def.tier + Math.floor(mis.t / def.every)); }
+  }
+  const clear = pending.length === 0 && !ships.some(s => !s.isPlayer && !s.sinking);
+  if (def.type === 'hold' ? mis.t >= def.secs && clear : mis.targets > 0 && clear) return completeMission();
+  if (def.type !== 'hold' && mis.t >= def.secs) gameOver(`Mission failed: ${def.lost}`);
+}
+function completeMission() {
+  const def = MISSIONS[mis.idx], bonus = 400 + 200 * mis.idx, r = resupply(0.2, 0.6);
+  mis.done = true; mis.next = 6;
+  cleared = mis.idx + 1; score += bonus;
+  showBanner(`${def.name} complete`, `+${bonus} · ${player.c.era === 'sail' ? 'carpenters patch' : 'repair crews restore'} ${r.heal} hull${r.extra}`);
+}
+// Between waves and missions the crew patch the hull, and the magazine is restocked in part.
+function resupply(healFrac, ammoFrac) {
+  const c = player.c, heal = Math.min(Math.round(c.hp * healFrac), player.maxHp - player.hp);
+  player.hp += heal;
+  let extra = '';
+  if (c.missile) {
+    const add = Math.min(Math.ceil(c.missile.stock * ammoFrac), c.missile.stock - player.missiles);
+    player.missiles += add; if (add > 0) extra = ` · magazine +${add}`;
+    if (c.decoy) player.decoys = Math.min(c.decoy.charges, player.decoys + 2);
+  }
+  if (player.rig > 0) { player.rig = Math.max(0, player.rig - 0.25); extra += c.rig === 'sail' ? ' · rigging re-rove' : ' · engines patched'; }
+  return { heal, extra };
 }
 
 /* =========================================================
    Input
    ========================================================= */
+/* Remappable keys. Each action has one key; KEYS holds the current binding of each. */
+const ACTIONS = [
+  { id: 'sailUp', label: 'More sail / engines up', def: 'KeyW' },
+  { id: 'sailDown', label: 'Take in sail / engines down', def: 'KeyS' },
+  { id: 'turnPort', label: 'Turn to port', def: 'KeyA' },
+  { id: 'turnStbd', label: 'Turn to starboard', def: 'KeyD' },
+  { id: 'slewPort', label: 'Slew close-in gun left (missile age; on sail, also steers)', def: 'ArrowLeft' },
+  { id: 'slewStbd', label: 'Slew close-in gun right (missile age; on sail, also steers)', def: 'ArrowRight' },
+  { id: 'fireL', label: 'Port broadside (missile age: guns)', def: 'KeyQ' },
+  { id: 'fireR', label: 'Starboard broadside (missile age: missiles)', def: 'KeyE' },
+  { id: 'fireAll', label: 'Fire everything that is ready', def: 'Space' },
+  { id: 'repair', label: 'Repair the hull', def: 'KeyR' },
+  { id: 'target', label: 'Cycle target lock (missile age)', def: 'Tab' },
+  { id: 'decoy', label: 'Deploy decoy cloud (missile age)', def: 'KeyX' },
+  { id: 'rearm', label: 'Rearm missiles (missile age)', def: 'KeyV' },
+  { id: 'pause', label: 'Pause', def: 'KeyP' },
+  { id: 'fullscreen', label: 'Fullscreen', def: 'KeyF' },
+  { id: 'music', label: 'Music on / off', def: 'KeyM' },
+  { id: 'sound', label: 'Sound on / off', def: 'KeyN' },
+];
+const KEYS = Object.fromEntries(ACTIONS.map(a => [a.id, a.def]));
+// ArrowUp and ArrowDown always set sail, as they always have. Escape always pauses a fight.
+const FIXED = { ArrowUp: 'sailUp', ArrowDown: 'sailDown' };
+function loadKeys() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('frigate-keys') || '{}');
+    for (const a of ACTIONS) if (typeof saved[a.id] === 'string') KEYS[a.id] = saved[a.id];
+  } catch (e) {}
+}
+function saveKeys() { try { localStorage.setItem('frigate-keys', JSON.stringify(KEYS)); } catch (e) {} }
+function bindKey(id, code) {
+  const other = ACTIONS.find(a => a.id !== id && KEYS[a.id] === code);
+  if (other) KEYS[other.id] = KEYS[id];   // swap, so no two actions share a key
+  KEYS[id] = code;
+  saveKeys();
+}
+const actionFor = code => (ACTIONS.find(a => KEYS[a.id] === code) || {}).id || FIXED[code] || null;
+const keyName = code => ({ Space: 'Space', Tab: 'Tab', Escape: 'Esc', ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓' })[code] || code.replace(/^(Key|Digit)/, '');
+let capturing = null;   // the action waiting for a new key on the rebind screen
+
 const keys = {};
+const held = id => !!keys[KEYS[id]];
 const isModern = s => s.c.mode === 'modern';
-function edge(code) {
+function edge(act) {
   if (mode !== 'play' || paused || !player || player.sinking) return;
-  switch (code) {
-    case 'KeyW': case 'ArrowUp':   setSail(player.sailIdx + 1); break;
-    case 'KeyS': case 'ArrowDown': setSail(player.sailIdx - 1); break;
-    case 'KeyQ': isModern(player) ? tryGuns(true) : tryFire(-1, true); break;
-    case 'KeyE': isModern(player) ? tryMissiles(true) : tryFire(1, true); break;
-    case 'Space': {
+  switch (act) {
+    case 'sailUp': setSail(player.sailIdx + 1); break;
+    case 'sailDown': setSail(player.sailIdx - 1); break;
+    case 'fireL': isModern(player) ? tryGuns(true) : tryFire(-1, true); break;
+    case 'fireR': isModern(player) ? tryMissiles(true) : tryFire(1, true); break;
+    case 'fireAll': {
       if (isModern(player)) {
         const a = tryGuns(false), b = tryMissiles(false);
         if (!a && !b) toast(player.repairing > 0 ? 'Guns silent while repairing' : 'Nothing ready to fire');
@@ -1126,10 +1327,10 @@ function edge(code) {
       }
       break;
     }
-    case 'Tab': if (isModern(player)) cycleTarget(); break;
-    case 'KeyX': if (isModern(player)) tryDecoy(true); break;
-    case 'KeyV': if (isModern(player)) tryRearm(); break;
-    case 'KeyR': tryRepair(); break;
+    case 'target': if (isModern(player)) cycleTarget(); break;
+    case 'decoy': if (isModern(player)) tryDecoy(true); break;
+    case 'rearm': if (isModern(player)) tryRearm(); break;
+    case 'repair': tryRepair(); break;
   }
 }
 function setSail(i) {
@@ -1161,10 +1362,10 @@ function tryMissiles(report) {
 /* ---------- Target lock (Tab) and decoys (X) ---------- */
 function lockedTarget(s) {
   const t = s.lock;
-  return t && !t.sinking && ships.includes(t) ? t : null;
+  return t && !t.sinking && ships.includes(t) && canSee(s, t) ? t : null;
 }
 function cycleTarget() {
-  const p = player, l = ships.filter(o => !o.isPlayer && !o.sinking)
+  const p = player, l = ships.filter(o => !o.isPlayer && !o.sinking && canSee(p, o))
     .sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
   if (!l.length) return;
   const cur = lockedTarget(p), i = l.indexOf(cur);
@@ -1207,11 +1408,18 @@ function tryRepair() {
 }
 window.addEventListener('keydown', e => {
   Snd.ctx && Snd.ctx.state === 'suspended' && Snd.ctx.resume().catch(() => {});
-  const playing = mode === 'play';
-  if (playing && ['Space', 'Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
-  if (e.code === 'Escape' || e.code === 'KeyP') {
+  if (capturing) {
+    e.preventDefault();
+    if (e.code !== 'Escape') bindKey(capturing, e.code);
+    capturing = null; renderKeys();
+    return;
+  }
+  const playing = mode === 'play', act = actionFor(e.code);
+  if (playing && (act || ['Space', 'Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code))) e.preventDefault();
+  if (e.code === 'Escape' || act === 'pause') {
     if (playing) { togglePause(); e.preventDefault(); }
     else if (!$('ships').hidden) show('era');
+    else if (!$('keys').hidden) { renderControls(); show('controls'); }
     else if (!$('era').hidden || !$('controls').hidden) { show('menu'); $('bStart').focus(); }
     return;
   }
@@ -1221,10 +1429,10 @@ window.addEventListener('keydown', e => {
     if (c) c.click();
     return;
   }
-  if (e.code === 'KeyF' && !e.repeat) { toggleFullscreen(); return; }
-  if (e.code === 'KeyM' && !e.repeat) { setMusic(!Snd.musicOn); return; }
-  if (e.code === 'KeyN' && !e.repeat) { setSound(!Snd.on); return; }
-  if (!keys[e.code]) { keys[e.code] = true; if (!e.repeat) edge(e.code); }
+  if (act === 'fullscreen' && !e.repeat) { toggleFullscreen(); return; }
+  if (act === 'music' && !e.repeat) { setMusic(!Snd.musicOn); return; }
+  if (act === 'sound' && !e.repeat) { setSound(!Snd.on); return; }
+  if (!keys[e.code]) { keys[e.code] = true; if (!e.repeat) edge(act); }
 });
 window.addEventListener('keyup', e => { keys[e.code] = false; });
 window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; if (mode === 'play' && !paused) togglePause(); });
@@ -1239,7 +1447,7 @@ function localToWorld(s, lx, ly) {
 function nearestHostile(s, maxD) {
   let best = null, bd = maxD || Infinity;
   for (const o of ships) {
-    if (o === s || o.sinking || o.isPlayer === s.isPlayer) continue;
+    if (o === s || o.sinking || o.isPlayer === s.isPlayer || !canSee(s, o)) continue;
     const d = Math.hypot(o.x - s.x, o.y - s.y);
     if (d < bd) { bd = d; best = o; }
   }
@@ -1251,7 +1459,7 @@ function layDir(s, side) {
   if (!c.autoLay) return base;
   let best = null, bd = Infinity;
   for (const o of ships) {
-    if (o === s || o.sinking || o.isPlayer === s.isPlayer) continue;
+    if (o === s || o.sinking || o.isPlayer === s.isPlayer || !canSee(s, o)) continue;
     const dx = o.x - s.x, dy = o.y - s.y, d = Math.hypot(dx, dy);
     if (d > c.range) continue;
     if (Math.abs(angNorm(Math.atan2(dy, dx) - base)) > c.arc + Math.atan2(o.c.L * 0.3, d)) continue;
@@ -1331,7 +1539,7 @@ function fireMissiles(s) {
   const m = s.c.missile;
   if (s.missiles <= 0) return 'empty';
   const tg = [];
-  for (const o of ships) if (o !== s && !o.sinking && o.isPlayer !== s.isPlayer) { const d = Math.hypot(o.x - s.x, o.y - s.y); if (d < m.range) tg.push([d, o]); }
+  for (const o of ships) if (o !== s && !o.sinking && o.isPlayer !== s.isPlayer && canSee(s, o)) { const d = Math.hypot(o.x - s.x, o.y - s.y); if (d < m.range) tg.push([d, o]); }
   if (!tg.length) return 'none';
   tg.sort((a, b) => a[0] - b[0]);
   const lk = lockedTarget(s);
@@ -1484,7 +1692,24 @@ function damageShip(s, amt, bx, by, attacker, heavy) {
   const [vol, pan] = audioPos(bx, by);
   Snd.hit(0.45 * vol, pan);
   if (s.isPlayer) { shake = Math.max(shake, big ? 8 : 5); hurt = Math.min(1, hurt + (big ? 0.2 : 0.12)); }
+  if (big && s.hp > 0 && Math.random() < 0.3) cripple(s, ly);
   if (s.hp <= 0) sinkShip(s, attacker);
+}
+// A heavy hit can knock out a battery for a while, and cut the rig (or the engines) of a ship that has one.
+function cripple(s, ly) {
+  const c = s.c;
+  if (c.mode === 'modern') {
+    s.reload[1] = Math.max(s.reload[1], 8);
+    if (s.isPlayer) toast('Missile cells knocked out: 8s');
+    return;
+  }
+  const side = ly >= 0 ? 1 : -1;
+  s.reload[side] = Math.max(s.reload[side], 9);
+  s.rig = Math.min(0.4, s.rig + 0.15);
+  if (s.isPlayer) {
+    const bat = `${side > 0 ? 'Starboard' : 'Port'} ${c.turrets ? 'turrets' : 'guns'} knocked out`;
+    toast(c.rig === 'sail' ? `${bat}, and rigging cut: sail power down` : `${bat}, and engine room hit: top speed down`);
+  }
 }
 function sinkShip(s, attacker) {
   s.sinking = true; s.sinkT = 0; s.queue.length = 0; s.repairing = 0;
@@ -1532,19 +1757,26 @@ function splash(x, y, big) {
 let seaSndT = 0;
 function update(dt) {
   T += dt;
+  if (mode === 'play') updateSquall(dt);
   // wind direction slowly backs and veers; wind speed gusts and settles
   windTimer -= dt;
   if (windTimer <= 0) { windTarget = windFrom + rand(-0.6, 0.6); windTimer = rand(25, 45); }
-  windFrom = angNorm(windFrom + clamp(angNorm(windTarget - windFrom), -0.02 * dt, 0.02 * dt));
+  const dirRate = squall.t > 0 ? 0.09 : 0.02;   // a squall swings the wind round much faster
+  windFrom = angNorm(windFrom + clamp(angNorm(windTarget - windFrom), -dirRate * dt, dirRate * dt));
   windTo = windFrom + Math.PI;
   windKnTimer -= dt;
   if (windKnTimer <= 0) { windKnTarget = pickWindTarget(); windKnTimer = rand(18, 35); }
-  windKn += clamp(windKnTarget - windKn, -0.35 * dt, 0.35 * dt);
+  const knRate = squall.t > 0 ? 1.2 : 0.35;
+  windKn += clamp(windKnTarget - windKn, -knRate * dt, knRate * dt);
   // the wave train moves one way at one speed; integrate it so veering never jumps the sea
   const drift = 4 + windKn * 0.55;
   seaPos.x += Math.cos(windTo) * drift * dt; seaPos.y += Math.sin(windTo) * drift * dt;
   seaSndT -= dt; if (seaSndT <= 0) { seaSndT = 1; Snd.setSea(seaK()); }
 
+  for (const f of fogs) {
+    f.x += Math.cos(windTo) * 3 * dt; f.y += Math.sin(windTo) * 3 * dt;
+    if (Math.hypot(f.x - player.x, f.y - player.y) > 3600) Object.assign(f, newFog(player));
+  }
   if (mode === 'menu') {
     player.turnInput = Math.sin(T * 0.12) * 0.35;
     player.sailTarget = 0.65;
@@ -1552,10 +1784,10 @@ function update(dt) {
     if (player.c.windDep > 0.5 && off < 55) player.turnInput = 1;
   } else if (mode === 'play' && player && !player.sinking) {
     if (isModern(player)) {
-      // on a missile-age ship the arrow keys slew the close-in gun; A and D steer
-      player.turnInput = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0);
-      player.ciwsAng = angNorm(player.ciwsAng + ((keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0)) * 2.4 * dt);
-    } else player.turnInput = ((keys.KeyD || keys.ArrowRight) ? 1 : 0) - ((keys.KeyA || keys.ArrowLeft) ? 1 : 0);
+      // on a missile-age ship the slew keys move the close-in gun; the turn keys steer
+      player.turnInput = (held('turnStbd') ? 1 : 0) - (held('turnPort') ? 1 : 0);
+      player.ciwsAng = angNorm(player.ciwsAng + ((held('slewStbd') ? 1 : 0) - (held('slewPort') ? 1 : 0)) * 2.4 * dt);
+    } else player.turnInput = ((held('turnStbd') || held('slewStbd')) ? 1 : 0) - ((held('turnPort') || held('slewPort')) ? 1 : 0);
     player.sailTarget = THROTTLES[player.c.era][player.sailIdx].v;
   }
 
@@ -1617,7 +1849,7 @@ function physics(s, dt) {
     wp = lerp(1, windPower(), c.windDep);       // and a fresher breeze drives a sailing ship harder
   }
   s.eff = eff; s.offDeg = offDeg;
-  let target = c.maxSpeed * s.sail * eff * wp * (0.72 + 0.28 * s.hp / s.maxHp);
+  let target = c.maxSpeed * s.sail * eff * wp * (0.72 + 0.28 * s.hp / s.maxHp) * (1 - s.rig);
   if (s.repairing > 0) target = Math.min(target, c.maxSpeed * 0.25);
   if (s.rearm > 0) target = Math.min(target, c.maxSpeed * 0.35);
   const acc = target > s.speed ? c.acc : c.dec;
@@ -1672,7 +1904,7 @@ function physics(s, dt) {
   if (s.repairing > 0) {
     s.repairing -= dt; s.hp = Math.min(s.maxHp, s.hp + (s.maxHp / 45) * dt);
     if (Math.random() < dt * 3) Snd.creak(0.03);
-    if (s.repairing <= 0) { s.repairing = 0; s.repairCd = REPAIR_CD; if (s.isPlayer) toast('Repairs complete'); }
+    if (s.repairing <= 0) { s.repairing = 0; s.repairCd = REPAIR_CD; s.rig = Math.max(0, s.rig - 0.2); if (s.isPlayer) toast('Repairs complete'); }
   } else if (s.repairCd > 0) s.repairCd = Math.max(0, s.repairCd - dt);
 
   // the gun crews fire down the side, the VLS cells cycle
@@ -1721,18 +1953,36 @@ function steerClear(s, desired) {
   }
   return Math.atan2(ay, ax);
 }
+// A runner breaks away from the player at a steady pace and does not fire back.
+function fleeAI(s, p) {
+  let desired = steerClear(s, Math.atan2(s.y - p.y, s.x - p.x));
+  if (s.c.windDep > 0.5) {
+    const o = angNorm(desired - windFrom);
+    if (Math.abs(o) < 0.72) desired = windFrom + (o >= 0 ? 0.76 : -0.76);
+  }
+  s.sailTarget = 0.6; s.ai.side = 0;
+  s.turnInput = clamp(angNorm(desired - s.heading) * 2.2, -1, 1);
+  s.aim[-1] = -1; s.aim[1] = -1;
+}
 function aiUpdate(s, dt) {
   const p = player;
   if (!p || p.sinking || mode !== 'play') { s.turnInput = 0; s.sailTarget = 0.5; return; }
-  if (s.c.mode === 'modern') { aiModern(s, dt, p); return; }
-  const dx = p.x - s.x, dy = p.y - s.y, dist = Math.hypot(dx, dy);
+  // a duellist swings from side to side, so it keeps turning onto you and never sits still
+  if (s.duel) { s.weaveT -= dt; if (s.weaveT <= 0) { s.weaveT = rand(3.5, 6); s.ai.side = -(s.ai.side || 1); } }
+  if (s.flee) { fleeAI(s, p); return; }
+  // in fog the enemy cannot see you: it steers for where it last saw you and does not fire
+  const seen = canSee(s, p);
+  if (seen || !s.ai.last) s.ai.last = { x: p.x, y: p.y, h: p.heading, sp: p.speed };
+  const tg = s.ai.last;
+  if (s.c.mode === 'modern') { aiModern(s, dt, tg, seen); return; }
+  const dx = tg.x - s.x, dy = tg.y - s.y, dist = Math.hypot(dx, dy);
   const bearing = Math.atan2(dy, dx);
   const rel = angNorm(bearing - s.heading);       // + means the player is to starboard
   const c = s.c, R = c.range, close = Math.max(170, c.L * 1.5);
   let desired;
   if (dist > R * 1.25) {
     const lead = dist / c.shellSpeed;
-    const tx = p.x + Math.cos(p.heading) * p.speed * lead, ty = p.y + Math.sin(p.heading) * p.speed * lead;
+    const tx = tg.x + Math.cos(tg.h) * tg.sp * lead, ty = tg.y + Math.sin(tg.h) * tg.sp * lead;
     desired = Math.atan2(ty - s.y, tx - s.x) + s.ai.offset;
     s.sailTarget = 1; s.ai.side = 0;
   } else {
@@ -1756,7 +2006,7 @@ function aiUpdate(s, dt) {
 
   // gunnery: lay the guns, wait for the target to bear, then fire
   for (const side of [-1, 1]) {
-    const inArc = Math.abs(angNorm(rel - side * Math.PI / 2)) < c.arc * 0.95 && dist < R * 0.97;
+    const inArc = seen && Math.abs(angNorm(rel - side * Math.PI / 2)) < c.arc * 0.95 && dist < R * 0.97;
     if (inArc && s.reload[side] <= 0 && s.queue.length === 0) {
       if (s.aim[side] < 0) s.aim[side] = rand(0.3, 1.3);
       else { s.aim[side] -= dt; if (s.aim[side] <= 0) { fireBroadside(s, side); s.aim[side] = -1; } }
@@ -1764,7 +2014,7 @@ function aiUpdate(s, dt) {
   }
 }
 // Missile-age hostiles: hold a standoff ring, shoot missiles first and guns inside gun range.
-function aiModern(s, dt, p) {
+function aiModern(s, dt, p, seen) {
   const c = s.c, dx = p.x - s.x, dy = p.y - s.y, dist = Math.hypot(dx, dy), bearing = Math.atan2(dy, dx);
   const rel = angNorm(bearing - s.heading), st = c.stand;
   let desired;
@@ -1779,11 +2029,11 @@ function aiModern(s, dt, p) {
   }
   desired = steerClear(s, desired);
   s.turnInput = clamp(angNorm(desired - s.heading) * 2.2, -1, 1);
-  if (s.reload[-1] <= 0 && s.queue.length === 0 && dist < c.gun.range * 0.97) {
+  if (seen && s.reload[-1] <= 0 && s.queue.length === 0 && dist < c.gun.range * 0.97) {
     if (s.aim[-1] < 0) s.aim[-1] = rand(0.2, 0.9);
     else { s.aim[-1] -= dt; if (s.aim[-1] <= 0) { fireGuns(s); s.aim[-1] = -1; } }
   } else s.aim[-1] = -1;
-  if (s.missiles > 0 && s.reload[1] <= 0 && dist < c.missile.range * 0.95) fireMissiles(s);
+  if (seen && s.missiles > 0 && s.reload[1] <= 0 && dist < c.missile.range * 0.95) fireMissiles(s);
 }
 
 function shipCollisions(dt) {
@@ -1866,8 +2116,9 @@ function waveLogic(dt) {
   }
   for (let i = pending.length - 1; i >= 0; i--) {
     pending[i].t -= dt;
-    if (pending[i].t <= 0) { spawnEnemy(pending[i].kind, pending[i].ang); pending.splice(i, 1); }
+    if (pending[i].t <= 0) { spawnEnemy(pending[i].kind, pending[i].ang, pending[i].opts); pending.splice(i, 1); }
   }
+  if (gameMode === 'mission' && mis) { missionLogic(dt); return; }
   if (intermission > 0) {
     intermission -= dt;
     if (intermission <= 0) startWave(wave + 1);
@@ -1876,18 +2127,10 @@ function waveLogic(dt) {
   const alive = ships.some(s => !s.isPlayer && !s.sinking);
   if (wave > 0 && !alive && pending.length === 0) {
     cleared = wave;
-    const bonus = 150 * wave, c = player.c;
+    const bonus = 150 * wave, c = player.c, r = resupply(0.11, 0.5);
     score += bonus;
-    const heal = Math.min(Math.round(c.hp * 0.11), player.maxHp - player.hp);
-    player.hp += heal;
-    let extra = '';
-    if (c.missile) {
-      const add = Math.min(Math.ceil(c.missile.stock / 2), c.missile.stock - player.missiles);
-      player.missiles += add; if (add > 0) extra = ` · magazine +${add}`;
-      if (c.decoy) player.decoys = Math.min(c.decoy.charges, player.decoys + 2);
-    }
     intermission = 7;
-    showBanner(`Wave ${wave} defeated`, `+${bonus} bonus · ${c.era === 'sail' ? 'carpenters patch' : 'repair crews restore'} ${Math.round(heal)} hull${extra}`);
+    showBanner(`Wave ${wave} defeated`, `+${bonus} bonus · ${c.era === 'sail' ? 'carpenters patch' : 'repair crews restore'} ${Math.round(r.heal)} hull${r.extra}`);
   }
 }
 
@@ -1908,8 +2151,10 @@ function render() {
   drawDecoys();
   drawDebris();
   if (mode === 'play') { if (isModern(player)) drawRanges(); else drawArcs(); }
-  const order = ships.slice().sort((a, b) => (b.sinking - a.sinking) || (a.isPlayer - b.isPlayer));
+  // ships hidden in fog are not drawn at all
+  const order = ships.filter(s => s.isPlayer || s.sinking || canSee(player, s)).sort((a, b) => (b.sinking - a.sinking) || (a.isPlayer - b.isPlayer));
   for (const s of order) drawShip(s);
+  drawFog();
   drawBalls();
   drawMissiles();
   drawTracers();
@@ -1920,6 +2165,7 @@ function render() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.globalAlpha = 1;
   ctx.drawImage(vignette, 0, 0, W, H);
+  if (squall.t > 0) drawSquall();
   if (mode === 'play') { drawHealthBars(); drawIndicators(); }
 }
 
@@ -1981,6 +2227,7 @@ function seaLayer(pat, size, dx, dy, alpha) {
 function drawWakes() {
   ctx.lineCap = 'round';
   for (const s of ships) {
+    if (!s.isPlayer && !s.sinking && !canSee(player, s)) continue;
     const tr = s.trail; if (tr.length < 2) continue;
     const B = s.c.B, spread = 0.16 * s.c.maxSpeed;
     // churned centre
@@ -2005,6 +2252,17 @@ function drawWakes() {
   ctx.globalAlpha = 1;
 }
 
+// Fog banks sit on the sea and drift with the wind. The ship in the middle of one is dimmed, not drawn.
+function drawFog() {
+  for (const f of fogs) {
+    const g = ctx.createRadialGradient(f.x, f.y, f.r * 0.25, f.x, f.y, f.r);
+    g.addColorStop(0, 'rgba(206,214,216,0.8)'); g.addColorStop(0.72, 'rgba(196,205,208,0.6)'); g.addColorStop(1, 'rgba(196,205,208,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, TAU); ctx.fill();
+    ctx.strokeStyle = 'rgba(240,244,245,0.22)'; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.arc(f.x, f.y, f.r * 0.6, f.wisp + T * 0.05, f.wisp + T * 0.05 + 1.6); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
 function drawDecoys() {
   for (const d of decoys) {
     const u = d.t / d.life, b = Math.min(1, d.t / d.bloom), live = d.t >= d.bloom;
@@ -2051,7 +2309,7 @@ function nearestEnemyDist() {
 function enemyInArc(side) {
   const base = player.heading + side * Math.PI / 2, R = player.c.range, arc = player.c.arc;
   for (const s of ships) {
-    if (s.isPlayer || s.sinking) continue;
+    if (s.isPlayer || s.sinking || !canSee(player, s)) continue;
     const dx = s.x - player.x, dy = s.y - player.y, d = Math.hypot(dx, dy);
     if (d > R) continue;
     const slack = Math.atan2(s.c.L * 0.3, d);
@@ -2421,7 +2679,7 @@ function drawFloaters() {
 const toScreen = (x, y) => [(x - cam.x) * ZOOM + W / 2, (y - cam.y) * ZOOM + H / 2];
 function drawHealthBars() {
   for (const s of ships) {
-    if (s.isPlayer || s.sinking || s.hp >= s.maxHp) continue;
+    if (s.isPlayer || s.sinking || s.hp >= s.maxHp || !canSee(player, s)) continue;
     const [x, y] = toScreen(s.x, s.y);
     const by = y - (s.c.L * 0.5 + 10) * ZOOM, w = Math.round(clamp(s.c.L * ZOOM * 0.43, 30, 90)), f = s.hp / s.maxHp;
     ctx.fillStyle = 'rgba(6,18,28,0.8)'; ctx.fillRect(x - w / 2 - 1, by - 1, w + 2, 6);
@@ -2433,7 +2691,7 @@ function drawIndicators() {
   const m = 34;
   ctx.font = "13px 'IM Fell English SC', Georgia, serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   for (const s of ships) {
-    if (s.isPlayer || s.sinking) continue;
+    if (s.isPlayer || s.sinking || !canSee(player, s)) continue;
     const [x, y] = toScreen(s.x, s.y);
     if (x > -10 && x < W + 10 && y > -10 && y < H + 10) continue;
     const ang = Math.atan2(y - H / 2, x - W / 2);
@@ -2501,7 +2759,7 @@ const hud = {
   hpNum: $('hpNum'), hpBar: $('hpBar'), sail: $('sailTxt'), spd: $('spdTxt'), pos: $('posTxt'),
   wave: $('waveTxt'), left: $('leftTxt'), sunk: $('sunkTxt'), score: $('scoreTxt'), wind: $('windTxt'),
   gPort: $('gPort'), gStar: $('gStar'), gRep: $('gRep'),
-  tgt: $('tgtTxt'), gDecoy: $('gDecoy'), tag: $('shipTag'), name: $('shipName'), sailLbl: $('sailLbl'), lblQ: $('lblQ'), lblE: $('lblE'), lblR: $('lblR'), threat: $('threat'),
+  tgt: $('tgtTxt'), obj: $('objTxt'), tallyLbl: $('tallyLbl'), gDecoy: $('gDecoy'), tag: $('shipTag'), name: $('shipName'), sailLbl: $('sailLbl'), lblQ: $('lblQ'), lblE: $('lblE'), lblR: $('lblR'), threat: $('threat'),
 };
 let hudT = 0;
 function applyShipHud(c) {
@@ -2529,13 +2787,15 @@ function updateHud(dt) {
   hud.spd.textContent = (p.speed / c.maxSpeed * c.kn).toFixed(1) + ' kn';
   if (c.windDep > 0.5) {
     const off = p.offDeg || 90;
-    hud.pos.textContent = `${pointOfSailName(off)} · ${Math.round(sailEfficiency(off) * 100)}% of best speed`;
+    hud.pos.textContent = `${pointOfSailName(off)} · ${Math.round(sailEfficiency(off) * 100)}% of best speed${p.rig > 0.01 ? ` · rigging cut: −${Math.round(p.rig * 100)}% speed` : ''}`;
   } else {
     const why = p.rearm > 0 ? ' · rearming, slowed' : p.repairing > 0 ? ' · repairing, slowed'
       : p.hp < p.maxHp * 0.99 ? ` · damage: −${Math.round((1 - (0.72 + 0.28 * p.hp / p.maxHp)) * 100)}% speed` : '';
-    hud.pos.textContent = `Engines ${Math.round(p.sail * 100)}%${why}`;
+    hud.pos.textContent = `Engines ${Math.round(p.sail * 100)}%${why}${p.rig > 0.01 ? ` · engine room hit: −${Math.round(p.rig * 100)}% speed` : ''}`;
   }
-  hud.wave.textContent = Math.max(1, wave);
+  const onMission = gameMode === 'mission';
+  hud.tallyLbl.textContent = onMission ? 'Mission' : 'Wave';
+  hud.wave.textContent = onMission && mis ? `${mis.idx + 1}/${MISSIONS.length}` : Math.max(1, wave);
   hud.left.textContent = ships.filter(s => !s.isPlayer && !s.sinking).length + pending.length;
   hud.sunk.textContent = sunk;
   hud.score.textContent = score.toLocaleString('en-GB');
@@ -2571,6 +2831,13 @@ function updateHud(dt) {
     else if (p.decoyCd > 0) setGauge(hud.gDecoy, 1 - p.decoyCd / dd.cd, `Reload ${Math.ceil(p.decoyCd)}s · ${p.decoys} left`, 'busy');
     else setGauge(hud.gDecoy, 1, `Ready · ${p.decoys} left`, 'ready');
   }
+  if (onMission && mis && !mis.done) {
+    const def = MISSIONS[mis.idx], left = Math.max(0, Math.ceil(def.secs - mis.t));
+    hud.obj.hidden = false;
+    hud.obj.textContent = def.type === 'hold' ? `Survive ${left}s and clear each fleet`
+      : def.type === 'intercept' ? `Sink the runner${def.count > 1 ? 's' : ''} · ${left}s left`
+      : `Sink the flagship and her escort · ${left}s left`;
+  } else hud.obj.hidden = true;
   // incoming missile warning
   let inbound = 0;
   for (const m of missiles) if (m.faction === 1 && m.tgt === p && !m.dead) inbound++;
@@ -2587,7 +2854,7 @@ function toast(msg) {
   const t = $('toast'); t.textContent = msg; t.classList.add('show');
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1500);
 }
-function show(id) { for (const s of ['menu', 'era', 'ships', 'controls', 'pause', 'over']) $(s).hidden = s !== id; }
+function show(id) { for (const s of ['menu', 'era', 'ships', 'controls', 'keys', 'pause', 'over']) $(s).hidden = s !== id; }
 
 /* ---------- Era and ship pickers ---------- */
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -2632,14 +2899,15 @@ function renderShips(e) {
 function renderControls() {
   const c = CLASSES[currentShip], modern = c.mode === 'modern', sail = c.rig === 'sail';
   $('ctlFor').textContent = `Showing orders for ${c.name}. Pick another ship from Start Game.`;
+  const key = id => keyName(KEYS[id]);
   const rows = [
-    [['W'], sail ? 'Set more sail' : 'Engines up'],
-    [['S'], sail ? 'Take in sail' : 'Engines down'],
-    [['A', 'D'], 'Turn to port / starboard'],
+    [[key('sailUp')], sail ? 'Set more sail' : 'Engines up'],
+    [[key('sailDown')], sail ? 'Take in sail' : 'Engines down'],
+    [[key('turnPort'), key('turnStbd')], 'Turn to port / starboard'],
   ];
-  if (modern) rows.push([['Q'], 'Fire the guns at the nearest hostile, any bearing'], [['E'], 'Launch an anti-ship missile salvo'], [['\u2190', '\u2192'], 'Slew the close-in gun (CIWS)'], [['V'], 'Rearm missiles (10s, slow, cells locked)'], [['Tab'], 'Cycle your target lock'], [['X'], 'Deploy a decoy cloud'], [['Space'], 'Fire guns and missiles']);
-  else rows.push([['Q'], 'Fire the port ' + (c.turrets ? 'turrets' : 'broadside') + ' (left)'], [['E'], 'Fire the starboard ' + (c.turrets ? 'turrets' : 'broadside') + ' (right)'], [['Space'], 'Fire every loaded ' + (c.turrets ? 'battery' : 'broadside')]);
-  rows.push([['R'], sail ? 'Repair the hull' : 'Damage control: repair the hull'], [['Esc'], 'Pause'], [['F', 'M'], 'Fullscreen · music']);
+  if (modern) rows.push([[key('fireL')], 'Fire the guns at the nearest hostile, any bearing'], [[key('fireR')], 'Launch an anti-ship missile salvo'], [[key('slewPort'), key('slewStbd')], 'Slew the close-in gun (CIWS)'], [[key('rearm')], 'Rearm missiles (10s, slow, cells locked)'], [[key('target')], 'Cycle your target lock'], [[key('decoy')], 'Deploy a decoy cloud'], [[key('fireAll')], 'Fire guns and missiles']);
+  else rows.push([[key('fireL')], 'Fire the port ' + (c.turrets ? 'turrets' : 'broadside') + ' (left)'], [[key('fireR')], 'Fire the starboard ' + (c.turrets ? 'turrets' : 'broadside') + ' (right)'], [[key('fireAll')], 'Fire every loaded ' + (c.turrets ? 'battery' : 'broadside')]);
+  rows.push([[key('repair')], sail ? 'Repair the hull' : 'Damage control: repair the hull'], [['Esc', key('pause')], 'Pause'], [[key('fullscreen'), key('music')], 'Fullscreen · music']);
   const o = $('orders'); o.textContent = '';
   for (const [ks, text] of rows) {
     const k = el('span', 'k'); ks.forEach(x => k.append(el('kbd', null, x)));
@@ -2661,14 +2929,25 @@ function renderControls() {
     'Heavy ships turn slowly. Start the turn early and do not stop the engines in a fight.',
   ];
   else tips = [
-    `Q fires the guns at the nearest hostile inside gun range, in any direction. Rounds are laid for you.`,
-    'E launches missiles at the nearest hostiles. The magazine is limited: open the fight with them, finish with guns. Each defeated wave resupplies half the magazine.',
-    'Tab cycles your lock. Guns and missiles go for the locked ship; with no lock they take the nearest. The bracket shows who you have.',
-    'SAMs work on their own, but the close-in gun is yours: the arrow keys slew its cone, and it only kills missiles inside the cone (it lights gold when one is). Red rings mark missiles coming for you. X drops a decoy cloud where you are: it blooms after a moment, stays put and drifts downwind, and only draws missiles that fly into it. Drop it early, then steer so it sits between you and the shooter.',
+    `${key('fireL')} fires the guns at the nearest hostile inside gun range, in any direction. Rounds are laid for you.`,
+    `${key('fireR')} launches missiles at the nearest hostiles. The magazine is limited: open the fight with them, finish with guns. Each defeated wave resupplies half the magazine.`,
+    `${key('target')} cycles your lock. Guns and missiles go for the locked ship; with no lock they take the nearest. The bracket shows who you have.`,
+    `SAMs work on their own, but the close-in gun is yours: the slew keys turn its cone, and it only kills missiles inside the cone (it lights gold when one is). Red rings mark missiles coming for you. ${key('decoy')} drops a decoy cloud where you are: it blooms after a moment, stays put and drifts downwind, and only draws missiles that fly into it. Drop it early, then steer so it sits between you and the shooter.`,
     'Faster missiles spend less time in a defender’s envelope, so fewer are shot down. Stealth hulls make some of them lose their lock altogether.',
   ];
   const t = $('tips'); t.textContent = '';
   tips.forEach(x => t.append(el('li', null, x)));
+}
+
+/* ---------- Rebinding keys ---------- */
+function renderKeys() {
+  const box = $('bindList'); box.textContent = '';
+  for (const a of ACTIONS) {
+    const b = el('button', 'qbtn', capturing === a.id ? 'Press a key…' : keyName(KEYS[a.id]));
+    b.type = 'button';
+    b.addEventListener('click', () => { capturing = a.id; renderKeys(); });
+    box.append(b, el('span', null, a.label));
+  }
 }
 
 /* ---------- Game flow ---------- */
@@ -2685,8 +2964,8 @@ function startGame(id) {
   applyShipHud(c);
   mode = 'play'; paused = false;
   show(null); $('hud').hidden = false;
-  intermission = 3.2;   // short calm before the first sails appear
-  showBanner(c.name, c.startLine);
+  if (gameMode === 'mission') startMission(0);
+  else { intermission = 3.2; showBanner(c.name, c.startLine); }   // a short calm before the first sails appear
   hudT = 0;
 }
 function toMenu() {
@@ -2701,15 +2980,21 @@ function togglePause() {
   show(paused ? 'pause' : null);
   if (paused) $('bResume').focus(); else document.activeElement && document.activeElement.blur();
 }
-function gameOver() {
+function gameOver(title) {
   mode = 'over';
-  if (score > (bests[currentShip] || 0)) { bests[currentShip] = score; try { localStorage.setItem(bestKey(currentShip), String(score)); } catch (e) {} }
-  $('oTitle').textContent = CLASSES[currentShip].lost;
+  // only freeplay scores go on the best-score board; a campaign has its own result
+  if (gameMode === 'free' && score > (bests[currentShip] || 0)) { bests[currentShip] = score; try { localStorage.setItem(bestKey(currentShip), String(score)); } catch (e) {} }
+  $('oTitle').textContent = title || CLASSES[currentShip].lost;
   $('oScore').textContent = score.toLocaleString('en-GB');
   $('oSunk').textContent = sunk;
-  $('oWaves').textContent = cleared;
+  $('oWavesLbl').textContent = gameMode === 'mission' ? 'Missions completed' : 'Waves survived';
+  $('oWaves').textContent = gameMode === 'mission' ? `${cleared} of ${MISSIONS.length}` : cleared;
   $('oBest').textContent = (bests[currentShip] || 0).toLocaleString('en-GB');
   show('over'); $('bAgain').focus();
+}
+function resultLine() {
+  const what = gameMode === 'mission' ? `Missions ${cleared}/${MISSIONS.length}` : `Freeplay, wave ${cleared}`;
+  return `Frigate Commander · ${CLASSES[currentShip].name} · ${what} · ${score.toLocaleString('en-GB')} pts · ${sunk} sunk`;
 }
 function refreshBest() {
   const top = Math.max(0, ...Object.values(bests));
@@ -2726,11 +3011,20 @@ function toggleFullscreen() {
 function setMusic(v) { Snd.setMusic(v); $('optMusic').checked = v; $('qMusic').textContent = v ? 'Music on · M' : 'Music off · M'; }
 function setSound(v) { Snd.setOn(v); $('optSound').checked = v; if (mode === 'play') toast(v ? 'Sound on' : 'Sound off'); }
 
-$('bStart').addEventListener('click', () => { renderEras(); show('era'); const f = document.querySelector('#eraPicks .pcard'); f && f.focus(); });
+$('bStart').addEventListener('click', () => { gameMode = 'free'; renderEras(); show('era'); const f = document.querySelector('#eraPicks .pcard'); f && f.focus(); });
+$('bMissions').addEventListener('click', () => { gameMode = 'mission'; renderEras(); show('era'); const f = document.querySelector('#eraPicks .pcard'); f && f.focus(); });
 $('bEraBack').addEventListener('click', () => { show('menu'); $('bStart').focus(); });
 $('bShipsBack').addEventListener('click', () => { show('era'); const f = document.querySelector('#eraPicks .pcard'); f && f.focus(); });
 $('bControls').addEventListener('click', () => { renderControls(); show('controls'); $('bBack').focus(); });
 $('bBack').addEventListener('click', () => { show('menu'); $('bStart').focus(); });
+$('bRebind').addEventListener('click', () => { renderKeys(); show('keys'); });
+$('bKeysBack').addEventListener('click', () => { capturing = null; renderControls(); show('controls'); $('bBack').focus(); });
+$('bResetKeys').addEventListener('click', () => { for (const a of ACTIONS) KEYS[a.id] = a.def; saveKeys(); capturing = null; renderKeys(); });
+$('bCopy').addEventListener('click', () => {
+  const text = resultLine();
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => toast('Result copied'), () => toast(text));
+  else toast(text);
+});
 $('bResume').addEventListener('click', togglePause);
 $('bRestart').addEventListener('click', () => startGame());
 $('bMenu').addEventListener('click', toMenu);
@@ -2752,6 +3046,7 @@ setMusic(false);
 /* =========================================================
    Main loop
    ========================================================= */
+loadKeys();
 resetWorld();
 applyShipHud(CLASSES[currentShip]);
 refreshBest();

@@ -175,22 +175,32 @@ select:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
 
   <section class="panel" id="guns" aria-label="Guns and repairs">
     <div class="gauge" id="gPort">
-      <div class="row"><span class="lbl"><kbd>Q</kbd> <span id="lblQ">Port guns</span></span></div>
+      <div class="row"><span class="lbl"><kbd id="kPort">Q</kbd> <span id="lblQ">Port guns</span></span></div>
       <div class="bar"><i></i></div>
       <div class="row"><b class="state">Ready</b></div>
     </div>
     <div class="gauge" id="gRep">
-      <div class="row"><span class="lbl"><kbd>R</kbd> <span id="lblR">Repair</span></span></div>
+      <div class="row"><span class="lbl"><kbd id="kRep">R</kbd> <span id="lblR">Repair</span></span></div>
       <div class="bar"><i></i></div>
       <div class="row"><b class="state">Ready</b></div>
     </div>
     <div class="gauge" id="gStar">
-      <div class="row"><span class="lbl"><kbd>E</kbd> <span id="lblE">Starboard</span></span></div>
+      <div class="row"><span class="lbl"><kbd id="kStar">E</kbd> <span id="lblE">Starboard</span></span></div>
       <div class="bar"><i></i></div>
       <div class="row"><b class="state">Ready</b></div>
     </div>
     <div class="gauge" id="gDecoy" hidden>
-      <div class="row"><span class="lbl"><kbd>X</kbd> Decoys</span></div>
+      <div class="row"><span class="lbl"><kbd id="kDecoy">X</kbd> Decoys</span></div>
+      <div class="bar"><i></i></div>
+      <div class="row"><b class="state">Ready</b></div>
+    </div>
+    <div class="gauge" id="gHeli" hidden>
+      <div class="row"><span class="lbl"><kbd id="kHeli">H</kbd> Helicopter</span></div>
+      <div class="bar"><i></i></div>
+      <div class="row"><b class="state">Ready</b></div>
+    </div>
+    <div class="gauge" id="gJam" hidden>
+      <div class="row"><span class="lbl"><kbd id="kJam">J</kbd> Jammer</span></div>
       <div class="bar"><i></i></div>
       <div class="row"><b class="state">Ready</b></div>
     </div>
@@ -474,7 +484,7 @@ const CLASSES = {
     lay:     { sup: [-0.06, 0.12], vls: [[0.18, 0.27], [-0.32, -0.20]], vlsX: -0.26, ciws: [0.08, -0.30], fun: [-0.12, -0.18], heli: -0.40 },
     startLine: 'General quarters. Radar contacts closing.', lost: 'USS Arleigh Burke has been lost',
     foes: { l: 'fac', m: 'corvette', h: 'destroyer' }, waveScale: 0.6,
-    card: { year: '1991–today', cls: 'Arleigh Burke-class guided-missile destroyer, US Navy',
+    card: { special: 'Helicopter strike and jamming, once a round each. Phalanx also shoots down incoming shells.', year: '1991–today', cls: 'Arleigh Burke-class guided-missile destroyer, US Navy',
       blurb: 'The balanced all-rounder: a 5-inch gun, eight anti-ship missiles and Aegis air defence with SM-2 interceptors and Phalanx.',
       perk: 'Layered defence: SM-2 at long range, Phalanx close in.', stats: { speed: 4, guns: 3, missiles: 3, air: 4, hull: 3 } } },
   zumwalt: { era: 'modern', playable: true, name: 'USS Zumwalt', tag: 'DDG-1000 · stealth destroyer', label: 'Destroyer',
@@ -485,29 +495,29 @@ const CLASSES = {
     lay:     { sup: [-0.14, 0.08], supW: 0.34, facets: true, vls: [[0.0, 0.12], [-0.30, -0.20]], vlsX: -0.05, heli: -0.38 },
     startLine: 'Stealth hull, guns trained. Hold the long range.', lost: 'USS Zumwalt has been lost',
     foes: { l: 'fac', m: 'corvette', h: 'destroyer' }, waveScale: 0.6,
-    card: { year: '2016–today', cls: 'Zumwalt-class stealth destroyer, US Navy',
+    card: { special: 'Helicopter strike and jamming, once a round each. Stealth hull, but no close-in gun.', year: '2016–today', cls: 'Zumwalt-class stealth destroyer, US Navy',
       blurb: 'A wave-piercing stealth hull and two 155 mm Advanced Gun Systems that outrange everything afloat. Little close-in defence beyond ESSM.',
       perk: 'Low radar signature: 45% of incoming missiles lose their lock.', stats: { speed: 3, guns: 5, missiles: 3, air: 2, hull: 5 } } },
   ticonderoga: { era: 'modern', playable: true, name: 'USS Ticonderoga', tag: 'CG-47 · Aegis cruiser', label: 'Cruiser',
     hp: 600, L: 172, B: 24, maxSpeed: 195, kn: 32, turn: 0.58, flag: 'US',
     gun:     { mounts: [0.34, -0.31], dmg: 10, burst: 3, reload: 3.0, range: 900, speed: 850, spread: 0.050 },
-    missile: { stock: 8, salvo: 2, reload: 20, range: 2000, speed: 480, dmg: 62, turn: 2.0 },
+    missile: { stock: 8, salvo: 3, reload: 20, range: 2000, speed: 480, dmg: 62, turn: 2.0 },
     def:     { ciwsR: 240, ciwsL: 1.5, samR: 1100, samL: 0.85, samCh: 3, stealth: 0 },
     lay:     { sup: [-0.08, 0.12], vls: [[0.19, 0.28], [-0.24, -0.15]], vlsX: -0.20, ciws: [0.10, -0.36], fun: [-0.12, -0.17], heli: -0.42 },
     startLine: 'Aegis tracking. Air picture is yours.', lost: 'USS Ticonderoga has been lost',
     foes: { l: 'fac', m: 'corvette', h: 'destroyer' }, waveScale: 0.65,
-    card: { year: '1983–today', cls: 'Ticonderoga-class guided-missile cruiser, US Navy',
+    card: { special: 'Helicopter strike and jamming, once a round each. Missiles fire in threes. Phalanx also shoots down shells.', year: '1983–today', cls: 'Ticonderoga-class guided-missile cruiser, US Navy',
       blurb: 'Two 5-inch guns and the heaviest air defence in the fleet. SPY-1 radar and SM-2 missiles can swat down a big salvo.',
       perk: 'Three simultaneous SAM engagements.', stats: { speed: 4, guns: 4, missiles: 3, air: 5, hull: 4 } } },
   type45: { era: 'modern', playable: true, name: 'HMS Daring', tag: 'Type 45 · air-defence destroyer', label: 'Destroyer',
     hp: 480, L: 152, B: 21, maxSpeed: 180, kn: 29, turn: 0.66, flag: 'UK',
     gun:     { mounts: [0.30], dmg: 11, burst: 3, reload: 2.6, range: 880, speed: 840, spread: 0.050 },
-    missile: { stock: 8, salvo: 2, reload: 20, range: 1900, speed: 470, dmg: 60, turn: 2.0 },
+    missile: { stock: 8, salvo: 1, reload: 12, range: 1900, speed: 470, dmg: 60, turn: 2.0 },
     def:     { ciwsR: 230, ciwsL: 1.4, samR: 1100, samL: 0.95, samCh: 3, stealth: 0 },
     lay:     { sup: [-0.04, 0.12], vls: [[0.18, 0.27]], vlsX: -0.04, ciws: [0.10, -0.30], fun: [-0.14, -0.20], heli: -0.38 },
     startLine: 'Sea Viper ready. Contacts on the plot.', lost: 'HMS Daring has been lost',
     foes: { l: 'fac', m: 'corvette', h: 'destroyer' }, waveScale: 0.55,
-    card: { year: '2009–today', cls: 'Type 45 (Daring-class) destroyer, Royal Navy',
+    card: { special: 'Helicopter strike and jamming, once a round each. Quick single missiles. Phalanx also shoots down shells.', year: '2009–today', cls: 'Type 45 (Daring-class) destroyer, Royal Navy',
       blurb: 'Built to kill aircraft and missiles. Lightly armed for a destroyer and thin-skinned, but nothing in the game protects its flock better.',
       perk: 'Sea Viper: highest SAM kill rate, three channels.', stats: { speed: 4, guns: 2, missiles: 3, air: 5, hull: 2 } } },
   sejong: { era: 'modern', playable: true, name: 'ROKS Sejong the Great', tag: 'DDG-991 · Aegis destroyer', label: 'Destroyer',
@@ -518,7 +528,7 @@ const CLASSES = {
     lay:     { sup: [-0.06, 0.12], vls: [[0.17, 0.27], [-0.32, -0.20]], vlsX: -0.26, ciws: [0.08, -0.30], fun: [-0.12, -0.18], heli: -0.40 },
     startLine: 'Aegis online. Hostile surface group inbound.', lost: 'ROKS Sejong the Great has been lost',
     foes: { l: 'fac', m: 'corvette', h: 'destroyer' }, waveScale: 0.6,
-    card: { year: '2008–today', cls: 'Sejong the Great-class destroyer, Republic of Korea Navy',
+    card: { special: 'Helicopter strike and jamming, once a round each. Phalanx also shoots down incoming shells.', year: '2008–today', cls: 'Sejong the Great-class destroyer, Republic of Korea Navy',
       blurb: 'One of the most heavily armed destroyers afloat. A deep anti-ship magazine and a full Aegis suite make it the best at opening a fight from range.',
       perk: 'Largest missile magazine: twelve rounds.', stats: { speed: 4, guns: 3, missiles: 5, air: 4, hull: 3 } } },
   type055: { era: 'modern', playable: true, name: 'PLAN Nanchang', tag: 'Type 055 · large destroyer', label: 'Destroyer',
@@ -529,7 +539,7 @@ const CLASSES = {
     lay:     { sup: [-0.08, 0.12], supW: 0.32, vls: [[0.17, 0.27], [-0.32, -0.20]], vlsX: -0.26, ciws: [0.06, -0.30], fun: [-0.14, -0.20], heli: -0.40 },
     startLine: 'Weapons free. Open the engagement.', lost: 'PLAN Nanchang has been lost',
     foes: { l: 'fac', m: 'corvette', h: 'destroyer' }, waveScale: 0.65,
-    card: { year: '2020–today', cls: 'Type 055 (Renhai-class) destroyer, PLA Navy',
+    card: { special: 'Helicopter strike and jamming, once a round each. Its missiles are fast, so few are shot down.', year: '2020–today', cls: 'Type 055 (Renhai-class) destroyer, PLA Navy',
       blurb: 'The largest hull of the group, with a 130 mm gun and a fast supersonic anti-ship missile that spends little time in a defender’s range.',
       perk: 'Much faster missiles: far fewer get shot down.', stats: { speed: 4, guns: 4, missiles: 4, air: 3, hull: 5 } } },
 };
@@ -1044,6 +1054,7 @@ let wave = 0, cleared = 0, score = 0, sunk = 0, pending = [], intermission = 0, 
 let cam = { x: 0, y: 0 }, shake = 0, arcVis = 0, lastFire = -99, hurt = 0, lastIntercept = -99;
 let enemyAcc = 1, enemyReload = 1;
 let gameMode = 'free', mis = null, fogs = [], squall = { t: 0, next: 60 };
+let roundUses = { heli: 1, jam: 1 }, jamT = 0;   // missile-age once-a-round abilities; refilled each round
 let currentShip = 'resolute', currentEra = 'sail', seaBase = ERA_SEA.sail;
 const bests = {};
 const bestKey = id => id === 'resolute' ? 'frigate-best' : 'frigate-best-' + id;
@@ -1102,6 +1113,7 @@ function resetWorld() {
   fogs = Array.from({ length: 3 }, () => newFog(player));
   squall = { t: 0, next: rand(50, 80) };
   mis = null;
+  resetRound();
   wave = 0; cleared = 0; score = 0; sunk = 0; pending = []; intermission = 0; overTimer = -1;
   enemyAcc = 1; enemyReload = 1;
 }
@@ -1179,6 +1191,7 @@ function describe(comp) {
 }
 function startWave(n) {
   wave = n;
+  resetRound();
   enemyAcc = Math.max(0.72, 1 - Math.max(0, n - 3) * 0.04);
   enemyReload = Math.max(0.8, 1 - Math.max(0, n - 3) * 0.03);
   const base = rand(-Math.PI, Math.PI);
@@ -1209,6 +1222,9 @@ function spawnFleet(n) {
   comp.forEach((kind, k) => pending.push({ kind, t: 0.6 + k * 1.4, ang: base + (k - (comp.length - 1) / 2) * 0.55 + rand(-0.12, 0.12) }));
 }
 
+/* A round is one freeplay wave or one mission. The helicopter and the jammer refill at the start of each. */
+function resetRound() { roundUses = { heli: 1, jam: 1 }; jamT = 0; }
+
 /* ---------- Missions ----------
    The campaign runs its six objectives in order. Each has its own win and loss condition, and a
    finished mission resupplies the ship before the next one begins. */
@@ -1216,6 +1232,7 @@ function startMission(i) {
   const def = MISSIONS[i], foes = CLASSES[currentShip].foes, duel = DUEL[currentEra], base = rand(-Math.PI, Math.PI);
   const spread = (k, n) => base + (k - (n - 1) / 2) * 0.6;
   mis = { idx: i, t: 0, spawnT: 1, targets: 0, done: false, next: 0 };
+  resetRound();
   pending = [];
   if (def.type === 'intercept') {
     for (let k = 0; k < def.count; k++) pending.push({ kind: duel.kind, t: 1 + k * 1.5, ang: spread(k, def.count), opts: { hpX: duel.hpX, turnX: duel.turnX, target: true, flee: true } });
@@ -1282,6 +1299,8 @@ const ACTIONS = [
   { id: 'target', label: 'Cycle target lock (missile age)', def: 'Tab' },
   { id: 'decoy', label: 'Deploy decoy cloud (missile age)', def: 'KeyX' },
   { id: 'rearm', label: 'Rearm missiles (missile age)', def: 'KeyV' },
+  { id: 'heli', label: 'Helicopter strike (missile age, once a round)', def: 'KeyH' },
+  { id: 'jam', label: 'Electronic jamming (missile age, once a round)', def: 'KeyJ' },
   { id: 'pause', label: 'Pause', def: 'KeyP' },
   { id: 'fullscreen', label: 'Fullscreen', def: 'KeyF' },
   { id: 'music', label: 'Music on / off', def: 'KeyM' },
@@ -1331,6 +1350,8 @@ function edge(act) {
     case 'decoy': if (isModern(player)) tryDecoy(true); break;
     case 'rearm': if (isModern(player)) tryRearm(); break;
     case 'repair': tryRepair(); break;
+    case 'heli': if (isModern(player)) tryHeli(true); break;
+    case 'jam': if (isModern(player)) tryJam(true); break;
   }
 }
 function setSail(i) {
@@ -1398,6 +1419,24 @@ function tryRearm() {
   if (p.missiles >= m.stock) { toast('Magazine is full'); return; }
   p.rearm = 10;
   toast('Rearming: cells locked and speed cut for 10s. Open the range first');
+}
+// The helicopter flies one homing strike a round: a fast missile launched from the deck.
+function tryHeli(report) {
+  const p = player;
+  if (roundUses.heli <= 0) { if (report) toast('Helicopter has already flown this round'); return false; }
+  const tgt = lockedTarget(p) || nearestHostile(p, 4000);
+  if (!tgt) { if (report) toast('No target in helicopter reach'); return false; }
+  missiles.push({ x: p.x, y: p.y, h: Math.atan2(tgt.y - p.y, tgt.x - p.x), spd: 320, turn: 2.4, t: 0, life: 16, tgt, owner: p, faction: 0, dmg: 46, loseAt: Infinity, lost: false, trailT: 0, dead: false });
+  roundUses.heli = 0;
+  if (report) toast('Helicopter away: homing strike inbound');
+  return true;
+}
+// Electronic jamming: for a few seconds, enemy missiles close to you lose their lock.
+function tryJam(report) {
+  if (roundUses.jam <= 0) { if (report) toast('Jammer already used this round'); return false; }
+  roundUses.jam = 0; jamT = 8;
+  if (report) toast('Jamming: missiles near you lose their lock for 8s');
+  return true;
 }
 function tryRepair() {
   const p = player, sail = p.c.era === 'sail';
@@ -1575,6 +1614,7 @@ function updateMissiles(dt) {
     m.t += dt;
     if (m.t > m.loseAt) m.lost = true;
     if (m.tgt && m.tgt.isDecoy && m.tgt.t > m.tgt.life) m.lost = true;   // the cloud has dispersed
+    if (jamT > 0 && m.faction === 1 && Math.hypot(m.x - player.x, m.y - player.y) < 1000) m.lost = true;   // jamming
     // a blooming decoy of the other side may seduce the seeker as it passes through
     if (!m.lost && !(m.tgt && m.tgt.isDecoy)) {
       for (const d of decoys) {
@@ -1637,6 +1677,14 @@ function updateDefense(dt) {
     const d = s.c.def;
     if (!d || s.sinking || (!d.ciwsR && !d.samR)) continue;
     let samBusy = 0;
+    // close-in guns also engage the other side's shells, which cross the gate faster than missiles
+    for (const b of balls) {
+      if (!d.ciwsR || b.dead || b.faction === (s.isPlayer ? 0 : 1)) continue;
+      if (Math.hypot(b.x - s.x, b.y - s.y) >= d.ciwsR) continue;
+      let hz = d.ciwsL * 1.5;
+      if (s.isPlayer) hz = Math.abs(angNorm(Math.atan2(b.y - s.y, b.x - s.x) - s.ciwsAng)) < 0.35 ? d.ciwsL * 3 : 0;
+      if (hz > 0 && Math.random() < 1 - Math.exp(-hz * dt)) intercept(s, b, 'ciws');
+    }
     for (const m of missiles) {
       if (m.dead || m.tgt !== s) continue;
       const dist = Math.hypot(m.x - s.x, m.y - s.y);
@@ -1660,7 +1708,7 @@ function intercept(s, m, kind) {
   for (let k = 0; k < 4; k++) addP('smoke', m.x, m.y, rand(-25, 25), rand(-25, 25), rand(1, 2), rand(3, 6), { grow: 7, col: '#8e8a84', a0: 0.5 });
   const [vol, pan] = audioPos(m.x, m.y);
   if (kind === 'ciws') Snd.ciws(0.22 * vol, pan); else Snd.boom(0.28 * vol, pan);
-  if (s.isPlayer && T - lastIntercept > 1.2) { lastIntercept = T; toast(kind === 'ciws' ? 'Close-in guns splash a missile' : 'Missile intercepted'); }
+  if (s.isPlayer && T - lastIntercept > 1.2) { lastIntercept = T; toast(kind === 'ciws' ? `Close-in guns splash a ${m.kind === 'ball' || m.kind === 'shell' ? 'shell' : 'missile'}` : 'Missile intercepted'); }
 }
 
 function audioPos(x, y) {
@@ -1758,6 +1806,7 @@ let seaSndT = 0;
 function update(dt) {
   T += dt;
   if (mode === 'play') updateSquall(dt);
+  if (jamT > 0) jamT = Math.max(0, jamT - dt);
   // wind direction slowly backs and veers; wind speed gusts and settles
   windTimer -= dt;
   if (windTimer <= 0) { windTarget = windFrom + rand(-0.6, 0.6); windTimer = rand(25, 45); }
@@ -2057,6 +2106,7 @@ function shipCollisions(dt) {
 function updateBalls(dt) {
   for (let i = balls.length - 1; i >= 0; i--) {
     const b = balls[i];
+    if (b.dead) { balls.splice(i, 1); continue; }
     b.t += dt; b.x += b.vx * dt; b.y += b.vy * dt; b.dist += b.sp * dt;
     let hit = false;
     if (b.t > 0.03) {
@@ -2758,7 +2808,7 @@ function drawCompass() {
 const hud = {
   hpNum: $('hpNum'), hpBar: $('hpBar'), sail: $('sailTxt'), spd: $('spdTxt'), pos: $('posTxt'),
   wave: $('waveTxt'), left: $('leftTxt'), sunk: $('sunkTxt'), score: $('scoreTxt'), wind: $('windTxt'),
-  gPort: $('gPort'), gStar: $('gStar'), gRep: $('gRep'),
+  gPort: $('gPort'), gStar: $('gStar'), gRep: $('gRep'), gHeli: $('gHeli'), gJam: $('gJam'),
   tgt: $('tgtTxt'), obj: $('objTxt'), tallyLbl: $('tallyLbl'), gDecoy: $('gDecoy'), tag: $('shipTag'), name: $('shipName'), sailLbl: $('sailLbl'), lblQ: $('lblQ'), lblE: $('lblE'), lblR: $('lblR'), threat: $('threat'),
 };
 let hudT = 0;
@@ -2768,6 +2818,9 @@ function applyShipHud(c) {
   hud.lblQ.textContent = c.mode === 'modern' ? 'Guns' : c.turrets ? 'Port turrets' : 'Port guns';
   hud.lblE.textContent = c.mode === 'modern' ? 'Missiles' : c.turrets ? 'Stbd turrets' : 'Starboard';
   hud.lblR.textContent = c.era === 'sail' ? 'Repair' : 'Damage control';
+  $('kPort').textContent = keyName(KEYS.fireL); $('kStar').textContent = keyName(KEYS.fireR);
+  $('kRep').textContent = keyName(KEYS.repair); $('kDecoy').textContent = keyName(KEYS.decoy);
+  $('kHeli').textContent = keyName(KEYS.heli); $('kJam').textContent = keyName(KEYS.jam);
   hud.gDecoy.hidden = c.mode !== 'modern';
   hud.tgt.hidden = c.mode !== 'modern';
 }
@@ -2818,6 +2871,14 @@ function updateHud(dt) {
       else if (r > 0) setGauge(el, 1 - r / c.reload, `Reloading ${r.toFixed(1)}s`, 'busy');
       else setGauge(el, 1, 'Ready', 'ready');
     }
+  }
+  hud.gHeli.hidden = hud.gJam.hidden = !isModern(p);
+  if (isModern(p)) {
+    if (roundUses.heli > 0) setGauge(hud.gHeli, 1, 'Ready · once a round', 'ready');
+    else setGauge(hud.gHeli, 0, 'Flown this round', 'off');
+    if (jamT > 0) setGauge(hud.gJam, jamT / 8, `Jamming ${jamT.toFixed(1)}s`, 'busy');
+    else if (roundUses.jam > 0) setGauge(hud.gJam, 1, 'Ready · once a round', 'ready');
+    else setGauge(hud.gJam, 0, 'Used this round', 'off');
   }
   if (p.repairing > 0) setGauge(hud.gRep, 1 - p.repairing / REPAIR_TIME, `Repairing ${p.repairing.toFixed(1)}s`, 'busy');
   else if (p.repairCd > 0) setGauge(hud.gRep, 1 - p.repairCd / REPAIR_CD, `Cooldown ${Math.ceil(p.repairCd)}s`, 'off');
@@ -2887,6 +2948,7 @@ function renderShips(e) {
     const best = bests[id] || 0;
     b.append(el('span', best ? 'bst' : 'num lbl', best ? `Best ${best.toLocaleString('en-GB')}` : String(i + 1)));
     b.append(el('span', 'yr', card.year), el('span', 'pn', c.name), el('span', 'pc', card.cls), el('span', 'pd', card.blurb), el('span', 'perk', card.perk));
+    if (card.special) b.append(el('span', 'pc', card.special));
     const mt = el('div', 'mt');
     for (const [k, label] of METERS) if (card.stats[k] != null) mt.append(el('span', null, label), pips(card.stats[k]));
     b.append(mt);
@@ -2905,7 +2967,7 @@ function renderControls() {
     [[key('sailDown')], sail ? 'Take in sail' : 'Engines down'],
     [[key('turnPort'), key('turnStbd')], 'Turn to port / starboard'],
   ];
-  if (modern) rows.push([[key('fireL')], 'Fire the guns at the nearest hostile, any bearing'], [[key('fireR')], 'Launch an anti-ship missile salvo'], [[key('slewPort'), key('slewStbd')], 'Slew the close-in gun (CIWS)'], [[key('rearm')], 'Rearm missiles (10s, slow, cells locked)'], [[key('target')], 'Cycle your target lock'], [[key('decoy')], 'Deploy a decoy cloud'], [[key('fireAll')], 'Fire guns and missiles']);
+  if (modern) rows.push([[key('fireL')], 'Fire the guns at the nearest hostile, any bearing'], [[key('fireR')], 'Launch an anti-ship missile salvo'], [[key('slewPort'), key('slewStbd')], 'Slew the close-in gun (CIWS)'], [[key('rearm')], 'Rearm missiles (10s, slow, cells locked)'], [[key('target')], 'Cycle your target lock'], [[key('decoy')], 'Deploy a decoy cloud'], [[key('heli')], 'Helicopter strike: one homing missile, once a round'], [[key('jam')], 'Electronic jamming: nearby missiles lose their lock for 8s, once a round'], [[key('fireAll')], 'Fire guns and missiles']);
   else rows.push([[key('fireL')], 'Fire the port ' + (c.turrets ? 'turrets' : 'broadside') + ' (left)'], [[key('fireR')], 'Fire the starboard ' + (c.turrets ? 'turrets' : 'broadside') + ' (right)'], [[key('fireAll')], 'Fire every loaded ' + (c.turrets ? 'battery' : 'broadside')]);
   rows.push([[key('repair')], sail ? 'Repair the hull' : 'Damage control: repair the hull'], [['Esc', key('pause')], 'Pause'], [[key('fullscreen'), key('music')], 'Fullscreen · music']);
   const o = $('orders'); o.textContent = '';
